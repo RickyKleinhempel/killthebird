@@ -45,8 +45,12 @@ pnpm audio    # convert the CC0 sounds (via Blender's FFmpeg)
 
 1. Bump `version` in `packages/killthebird/package.json` and commit.
 2. Create a GitHub release with the tag `v<version>` (e.g. `v0.1.0`).
-3. The `Publish to npm` workflow runs typecheck, tests and build, then
-   publishes with npm provenance. It needs the repository secret `NPM_TOKEN`.
+3. The `Publish to npm` workflow runs typecheck, tests and build, then stages
+   the version on npm (with provenance). It needs the repository secret
+   `NPM_TOKEN`.
+4. Approve the staged version with 2FA: npmjs.com → package → **Staged
+   Packages** → **Approve** (or `npm stage approve <id>`). Only then the
+   version becomes installable.
 
 ## License
 

@@ -1,8 +1,10 @@
 name: Publish to npm
 
 # Runs when a GitHub release is published (tag e.g. v0.1.0) or manually.
-# Needs the repository secret NPM_TOKEN (npm "Automation" or granular token
-# with publish rights for the package "killthebird").
+# Needs the repository secret NPM_TOKEN (granular token with publish rights and
+# "bypass 2FA"). npm stages the upload; a maintainer then approves it with 2FA
+# on npmjs.com (package page -> "Staged Packages" -> Approve) or via
+# `npm stage approve <id>`. Only then the version goes live.
 on:
   release:
     types: [published]
@@ -44,9 +46,12 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish (typecheck, tests and build run in prepublishOnly)
+      - name: Use an npm CLI with staged publishing (>= 11.15)
+        run: npm install -g npm@11
+
+      - name: Stage the release (typecheck, tests and build run in prepublishOnly)
         if: steps.check.outputs.skip != 'true'
         working-directory: packages/killthebird
-        run: npm publish --access public --provenance
+        run: npm stage publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
