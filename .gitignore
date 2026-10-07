@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.next/
+out/
+*.tsbuildinfo
+.DS_Store
+*.log
+*.tgz
+.env*
+next-env.d.ts
+/apps/demo/public/killthebird/
+/packages/killthebird/assets-src/blender/__pycache__/
+out/

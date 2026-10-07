@@ -1,0 +1,72 @@
+{
+  "$comment": "Sources for scripts/build-audio.mjs. start/duration/fadeOut in seconds. All sources are CC0 (verified on the linked pages, 2026-10-07).",
+  "sounds": {
+    "shot": {
+      "file": "src/bigsoundbank-2853-shotgun-clay-shoot.ogg",
+      "duration": 1.1,
+      "fadeOut": 0.25,
+      "title": "Rifle: Shot #1 (shotgun at a clay pigeon shoot)",
+      "url": "https://bigsoundbank.com/rifle-shot-1-s2853.html",
+      "author": "Joseph Sardin (BigSoundBank)",
+      "license": "CC0 1.0",
+      "volume": 1.6
+    },
+    "reload": {
+      "file": "src/zer0_sol-shotgun-rack.mp3",
+      "start": 0.55,
+      "duration": 0.58,
+      "fadeOut": 0.05,
+      "title": "Shotgun Reload Sound effects (Rack)",
+      "url": "https://opengameart.org/content/shotgun-reload-sound-effects",
+      "author": "zer0_sol",
+      "license": "CC0 1.0",
+      "volume": 0.45
+    },
+    "empty": {
+      "file": "src/bigsoundbank-2003-empty-cap-gun.ogg",
+      "duration": 0.3,
+      "fadeOut": 0.05,
+      "volume": 0.8,
+      "title": "Empty firecracker gun #1",
+      "url": "https://bigsoundbank.com/empty-firecracker-gun-1-s2003.html",
+      "author": "Joseph Sardin (BigSoundBank)",
+      "license": "CC0 1.0"
+    },
+    "hit": {
+      "file": "src/bigsoundbank-0453-annoyed-hen.ogg",
+      "duration": 0.5,
+      "fadeOut": 0.06,
+      "volume": 1.4,
+      "title": "Annoyed Hen",
+      "url": "https://bigsoundbank.com/annoyed-hen-s0453.html",
+      "author": "Joseph Sardin (BigSoundBank)",
+      "license": "CC0 1.0"
+    },
+    "bonus": {
+      "file": "src/fupi-plingy-coin.wav",
+      "volume": 3.2,
+      "title": "Plingy Coin",
+      "url": "https://opengameart.org/content/plingy-coin",
+      "author": "Fupi",
+      "license": "CC0 1.0"
+    },
+    "end": {
+      "file": "src/memoraphile-the-reel-winner.mp3",
+      "volume": 0.8,
+      "fadeOut": 0.3,
+      "title": "The Reel Winner",
+      "url": "https://opengameart.org/content/gone-fishin",
+      "author": "Memoraphile @ You're Perfect Studio",
+      "license": "CC0 1.0"
+    },
+    "music": {
+      "file": "src/memoraphile-gone-fishin.mp3",
+      "volume": 0.8,
+      "bitrate": 96,
+      "title": "Gone Fishin'",
+      "url": "https://opengameart.org/content/gone-fishin",
+      "author": "Memoraphile @ You're Perfect Studio",
+      "license": "CC0 1.0"
+    }
+  }
+}

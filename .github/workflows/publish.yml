@@ -1,0 +1,52 @@
+name: Publish to npm
+
+# Runs when a GitHub release is published (tag e.g. v0.1.0) or manually.
+# Needs the repository secret NPM_TOKEN (npm "Automation" or granular token
+# with publish rights for the package "killthebird").
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check that the release tag matches the package version
+        if: github.event_name == 'release'
+        run: |
+          version=$(node -p "require('./packages/killthebird/package.json').version")
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$version" != "$tag" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package version $version"
+            exit 1
+          fi
+
+      - name: Skip if this version is already on npm
+        id: check
+        run: |
+          version=$(node -p "require('./packages/killthebird/package.json').version")
+          if npm view "killthebird@$version" version >/dev/null 2>&1; then
+            echo "killthebird@$version is already published"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish (typecheck, tests and build run in prepublishOnly)
+        if: steps.check.outputs.skip != 'true'
+        working-directory: packages/killthebird
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

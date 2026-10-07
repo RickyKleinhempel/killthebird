@@ -1,0 +1,26 @@
+{
+  "name": "demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "killthebird copy-assets public/killthebird",
+    "dev": "next dev -p 3123",
+    "prebuild": "killthebird copy-assets public/killthebird",
+    "build": "next build",
+    "start": "next start -p 3123",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "killthebird": "workspace:*",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "5.9.3"
+  }
+}

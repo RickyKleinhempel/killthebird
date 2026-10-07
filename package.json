@@ -1,0 +1,13 @@
+{
+  "name": "killthebird-monorepo",
+  "private": true,
+  "packageManager": "pnpm@11.5.2",
+  "scripts": {
+    "build": "pnpm --filter killthebird build",
+    "test": "pnpm --filter killthebird test",
+    "dev": "pnpm --filter killthebird build && pnpm --filter demo dev",
+    "models": "pnpm --filter killthebird build:models",
+    "typecheck": "pnpm -r typecheck",
+    "audio": "pnpm --filter killthebird build:audio"
+  }
+}
