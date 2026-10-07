@@ -30,7 +30,7 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "killthebird": "./bin/killthebird.mjs"
+    "killthebird": "bin/killthebird.mjs"
   },
   "files": [
     "dist",
