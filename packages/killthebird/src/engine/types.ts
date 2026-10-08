@@ -35,6 +35,13 @@ export interface GameOptions {
   debug?: boolean;
   /** Upper bound for devicePixelRatio. Default: 2. */
   maxPixelRatio?: number;
+  /**
+   * Lower the render resolution in small steps while the frame rate stays below
+   * 50 fps, and raise it again when there is headroom. Devices that keep up
+   * are never affected. The pixel ratio stays at least 0.75 and at least half
+   * of the capped devicePixelRatio. Default: true.
+   */
+  adaptiveQuality?: boolean;
 }
 
 export interface HitEvent {

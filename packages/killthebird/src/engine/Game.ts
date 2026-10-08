@@ -8,6 +8,7 @@ import {
   WebGLRenderer,
   type Object3D,
 } from "three";
+import { AdaptiveResolution } from "./AdaptiveResolution";
 import { GameAudio } from "./Audio";
 import { loadModels } from "./Assets";
 import { CameraController } from "./CameraController";
@@ -50,6 +51,10 @@ export class Game implements GameInstance {
   private readonly ndc = new Vector2();
   private readonly tmp = new Vector3();
   private renderer: WebGLRenderer | null = null;
+  /** devicePixelRatio capped by maxPixelRatio; adaptive quality scales it down. */
+  private readonly basePixelRatio: number;
+  private readonly adaptive: AdaptiveResolution | null;
+  private adaptiveLast = 0;
   private effects: Effects | null = null;
   private readonly impacts = new Impacts();
   private readonly screen = new ScreenOverlay();
@@ -74,6 +79,8 @@ export class Game implements GameInstance {
     this.options = resolveOptions(options);
     this.muted = this.options.muted;
     this.difficulty = this.options.difficulty;
+    this.basePixelRatio = Math.min(globalThis.devicePixelRatio || 1, this.options.maxPixelRatio);
+    this.adaptive = this.options.adaptiveQuality ? new AdaptiveResolution(this.basePixelRatio) : null;
     this.session = new Session({
       duration: this.options.duration,
       shells: this.options.shells,
@@ -110,7 +117,7 @@ export class Game implements GameInstance {
       return;
     }
     const r = this.renderer;
-    r.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1, this.options.maxPixelRatio));
+    r.setPixelRatio(this.basePixelRatio);
     r.toneMapping = NeutralToneMapping;
     r.toneMappingExposure = 1.05;
     r.shadowMap.enabled = true;
@@ -174,12 +181,14 @@ export class Game implements GameInstance {
     const io = new IntersectionObserver((entries) => {
       this.visible = entries.some((e) => e.isIntersecting);
       if (!this.visible) this.pause();
+      this.adaptive?.reset();
     });
     io.observe(this.container);
     this.cleanup.push(() => io.disconnect());
 
     const onVisibility = () => {
       if (document.hidden) this.pause();
+      this.adaptive?.reset();
     };
     document.addEventListener("visibilitychange", onVisibility);
     this.cleanup.push(() => document.removeEventListener("visibilitychange", onVisibility));
@@ -200,6 +209,7 @@ export class Game implements GameInstance {
     this.renderer.setSize(width, height, false);
     this.cameraController.resize(width, height);
     this.screen.setAspect(width / height);
+    this.adaptive?.reset();
   }
 
   start(): void {
@@ -410,9 +420,23 @@ export class Game implements GameInstance {
     this.wrapper.style.cursor = playing ? "none" : "default";
 
     this.renderer.render(this.scene, this.cameraController.camera);
+    if (this.adaptive) this.adapt(this.adaptive, this.renderer, now);
     if (this.options.debug) this.updateDebug(dt);
     this.emitHud();
   };
+
+  /** Feeds the frame time to the adaptive resolution and applies a new pixel ratio. */
+  private adapt(adaptive: AdaptiveResolution, renderer: WebGLRenderer, now: number): void {
+    const state = this.session.state;
+    // Loading and pause are not representative (and leaving them restarts the warm-up).
+    const active = state === "ready" || state === "playing" || state === "ended";
+    // setPixelRatio only resizes the drawing buffer; the canvas keeps its CSS size,
+    // so pointer and raycast coordinates (CSS pixels) are unaffected.
+    if (adaptive.update(now - this.adaptiveLast, active)) {
+      renderer.setPixelRatio(this.basePixelRatio * adaptive.scale);
+    }
+    this.adaptiveLast = now;
+  }
 
   private updateDebug(dt: number): void {
     this.fps.frames++;
@@ -423,7 +447,7 @@ export class Game implements GameInstance {
     this.fps.time = 0;
     const info = this.renderer!.info.render;
     this.overlay.debug(
-      `${this.fps.value} fps\n${info.calls} draw calls\n${(info.triangles / 1000).toFixed(1)}k tris\ncam x ${this.cameraController.x.toFixed(1)}`,
+      `${this.fps.value} fps\n${info.calls} draw calls\n${(info.triangles / 1000).toFixed(1)}k tris\n${this.renderer!.getPixelRatio().toFixed(2)} px ratio\ncam x ${this.cameraController.x.toFixed(1)}`,
     );
   }
 
