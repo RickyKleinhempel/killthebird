@@ -2,6 +2,8 @@ import { AdditiveBlending, Color, Group, Mesh, PlaneGeometry, ShaderMaterial, ty
 import { globalUniforms } from "./common";
 
 const POOL = 10;
+/** Slack on the expiry check: the shader's float32 age may still be <= 1 when ours is just above. */
+const AGE_EPSILON = 1e-3;
 
 const vertexShader = /* glsl */ `
   uniform float uScale;
@@ -70,6 +72,8 @@ export class Impacts {
       const mesh = new Mesh(this.geometry, material);
       mesh.frustumCulled = false;
       mesh.renderOrder = 10;
+      // Only drawn while a flash plays (see update())
+      mesh.visible = false;
       this.meshes.push(mesh);
       this.group.add(mesh);
     }
@@ -85,6 +89,21 @@ export class Impacts {
     u.uLife!.value = life;
     u.uScale!.value = size;
     (u.uColor!.value as Color).copy(color);
+    mesh.visible = true;
+  }
+
+  /**
+   * Hides finished flashes so idle pool entries cost no draw call. Call once per
+   * frame after `globalUniforms.uTime` is set; mirrors the fragment shader's discard.
+   */
+  update(): void {
+    const now = globalUniforms.uTime.value;
+    for (const mesh of this.meshes) {
+      if (!mesh.visible) continue;
+      const u = mesh.material.uniforms;
+      const age = (now - (u.uStart!.value as number)) / (u.uLife!.value as number);
+      mesh.visible = age >= 0 && age <= 1 + AGE_EPSILON;
+    }
   }
 
   dispose(): void {

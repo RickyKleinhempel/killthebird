@@ -52,6 +52,9 @@ export class Effects {
   private readonly params = new Float32Array(MAX_PARTICLES * 3); // gravity, drag, flutter
   private cursor = 0;
   private alive = 0;
+  /** Live slots lie within [low, top); slots at or above `top` are not drawn. */
+  private low = MAX_PARTICLES;
+  private top = 0;
   private time = 0;
 
   private readonly m = new Matrix4();
@@ -73,10 +76,14 @@ export class Effects {
       this.mesh.setMatrixAt(i, this.m);
       this.mesh.setColorAt(i, this.c.set(0xffffff));
     }
+    // Nothing alive yet: skip the draw call entirely
+    this.mesh.count = 0;
+    this.mesh.visible = false;
     scene.add(this.mesh);
   }
 
   burst(at: Vector3, preset: BurstPreset, scale = 1): void {
+    const first = this.cursor;
     for (let n = 0; n < preset.count; n++) {
       const i = this.cursor;
       this.cursor = (this.cursor + 1) % MAX_PARTICLES;
@@ -96,6 +103,8 @@ export class Effects {
       this.spin.set([(Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10], i * 3);
       const life = preset.life * (0.7 + Math.random() * 0.6);
       if (this.life[i]! <= 0) this.alive++;
+      if (i < this.low) this.low = i;
+      if (i >= this.top) this.top = i + 1;
       this.life[i] = life;
       this.maxLife[i] = life;
       const size = preset.size * scale * (0.7 + Math.random() * 0.6);
@@ -105,14 +114,28 @@ export class Effects {
       const color = preset.colors[Math.floor(Math.random() * preset.colors.length)]!;
       this.mesh.setColorAt(i, this.c.set(color));
     }
-    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    const colors = this.mesh.instanceColor;
+    if (colors) {
+      // Upload just the written slots (two runs when the ring wrapped)
+      const wrapped = Math.max(0, first + preset.count - MAX_PARTICLES);
+      colors.addUpdateRange(first * 3, (preset.count - wrapped) * 3);
+      if (wrapped > 0) colors.addUpdateRange(0, wrapped * 3);
+      colors.needsUpdate = true;
+    }
+    // New slots get their transform in the next update(), exactly as before
+    this.mesh.count = this.top;
+    this.mesh.visible = this.top > 0;
   }
 
   update(dt: number): void {
     this.time += dt;
     if (this.alive === 0) return;
+    const start = this.low;
+    const end = this.top;
     let alive = 0;
-    for (let i = 0; i < MAX_PARTICLES; i++) {
+    let low = MAX_PARTICLES;
+    let top = 0;
+    for (let i = start; i < end; i++) {
       if (this.life[i]! <= 0) continue;
       const life = (this.life[i]! -= dt);
       const i3 = i * 3;
@@ -122,6 +145,8 @@ export class Effects {
         continue;
       }
       alive++;
+      if (i < low) low = i;
+      top = i + 1;
       const gravity = this.params[i3]!;
       const damping = Math.exp(-this.params[i3 + 1]! * dt);
       const flutter = this.params[i3 + 2]!;
@@ -141,7 +166,14 @@ export class Effects {
       this.mesh.setMatrixAt(i, this.m);
     }
     this.alive = alive;
-    this.mesh.instanceMatrix.needsUpdate = true;
+    this.low = low;
+    this.top = top;
+    // Only the scanned slots changed (including the ones that just died)
+    const matrices = this.mesh.instanceMatrix;
+    matrices.addUpdateRange(start * 16, (end - start) * 16);
+    matrices.needsUpdate = true;
+    this.mesh.count = top;
+    this.mesh.visible = top > 0;
   }
 
   dispose(): void {
