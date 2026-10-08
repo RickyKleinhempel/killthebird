@@ -103,6 +103,7 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
     autoStart,
     debug,
     maxPixelRatio,
+    adaptiveQuality,
     locale = "de",
     labels: labelOverrides,
     hideHud = false,
@@ -142,6 +143,7 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
     autoStart,
     debug,
     maxPixelRatio,
+    adaptiveQuality,
   ]);
 
   useEffect(() => {
@@ -167,6 +169,7 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
           autoStart,
           debug,
           maxPixelRatio,
+          adaptiveQuality,
         });
         gameRef.current = game;
         const p = () => propsRef.current;

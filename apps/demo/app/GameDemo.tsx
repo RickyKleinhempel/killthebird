@@ -26,6 +26,9 @@ export function GameDemo() {
   const debug = query?.has("debug") ?? false;
   // ?seed=… makes the level reproducible (used by the benchmarks in /bench).
   const seed = query?.has("seed") ? Number(query.get("seed")) : undefined;
+  // ?adaptive=0 turns the adaptive resolution off (the benchmarks measure without it).
+  const adaptive = query?.get("adaptive");
+  const adaptiveQuality = adaptive === "0" ? false : adaptive === "1" ? true : undefined;
 
   return (
     <>
@@ -48,6 +51,7 @@ export function GameDemo() {
           assetsBaseUrl={ASSETS}
           debug={debug}
           seed={seed}
+          adaptiveQuality={adaptiveQuality}
           onGameStart={() => add("Runde gestartet")}
           onHit={(e) => add(`Treffer: +${e.points} (${e.target}, ${e.layer}) → ${e.totalScore}`)}
           onGameEnd={(r) => {

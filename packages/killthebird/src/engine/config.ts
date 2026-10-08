@@ -15,6 +15,7 @@ export const DEFAULT_OPTIONS: ResolvedOptions = {
   autoStart: false,
   debug: false,
   maxPixelRatio: 2,
+  adaptiveQuality: true,
 };
 
 export function resolveOptions(options: GameOptions = {}): ResolvedOptions {

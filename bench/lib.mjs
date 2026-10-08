@@ -136,7 +136,9 @@ export async function openGame(browser, url, { width, height, query = "" }) {
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 });
   const page = await context.newPage();
   page.on("pageerror", (err) => console.error("[page error]", err.message));
-  return { context, page, ready: () => waitReady(page, `${url}?debug&seed=7&adaptive=0${query}`) };
+  // Adaptive resolution is off unless the query asks for it (e.g. "&adaptive=1").
+  const adaptive = query.includes("adaptive=") ? "" : "&adaptive=0";
+  return { context, page, ready: () => waitReady(page, `${url}?debug&seed=7${adaptive}${query}`) };
 }
 
 async function waitReady(page, url) {

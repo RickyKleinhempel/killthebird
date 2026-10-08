@@ -117,6 +117,7 @@ export function Game() {
 | `difficultySelect` | `boolean` | `true` | Difficulty selector on the start / end screen |
 | `debug` | `boolean` | `false` | fps / draw call overlay |
 | `maxPixelRatio` | `number` | `2` | Caps `devicePixelRatio` |
+| `adaptiveQuality` | `boolean` | `true` | Lowers the render resolution while the frame rate stays below 50 fps (see [Look and performance](#look-and-performance)) |
 | `className` / `style` | | | Applied to the container |
 
 ### Events
@@ -204,7 +205,18 @@ menus. Build those from the `hud` event.
 
 Every model uses vertex colours and one shared material, and static scenery is
 merged per depth layer, so a frame needs only about 50 draw calls. Use the
-`debug` prop to see fps and draw calls.
+`debug` prop to see fps, draw calls and the current pixel ratio.
+
+On slow GPUs, `adaptiveQuality` (on by default) trades resolution for frame
+rate: when the frame time averaged over 2 seconds stays above 20 ms (below
+50 fps), the pixel ratio is lowered in 10 % steps, but never below 0.75 and
+never below half of the capped `devicePixelRatio`. After 5 seconds below 18 ms
+it goes back up one step; a step that immediately turns out too slow again is
+locked out for a growing time, so the resolution does not oscillate. Load,
+pause, resizes, tab switches and single hiccups are not measured. Steps that
+do not make frames faster (CPU-bound or frame-capped devices) are undone.
+A device that keeps up with a 60 Hz display is never affected.
+Set `adaptiveQuality={false}` for a fixed resolution.
 
 ## Developing
 

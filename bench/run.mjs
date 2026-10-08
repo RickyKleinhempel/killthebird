@@ -4,7 +4,8 @@
 //                 [--seconds 20] [--query "&foo=1"] [--no-serve] [--no-build] [--headed]
 //   pnpm bench -- --compare before after
 //
-// Each scenario loads the demo with ?debug&seed=7&adaptive=0, starts a round
+// Each scenario loads the demo with ?debug&seed=7&adaptive=0 (--query "&adaptive=1"
+// measures with the adaptive resolution instead), starts a round
 // and drives it from inside the page: the camera sweeps across the whole
 // panorama and a shot is fired every 0.4 s (with reloads), so particles and
 // impacts are exercised too.
