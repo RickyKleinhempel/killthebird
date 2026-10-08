@@ -22,6 +22,13 @@ describe("stepScroll", () => {
     expect(s.x).toBe(40);
     expect(s.velocity).toBe(0);
   });
+
+  it("can update a state in place", () => {
+    const fresh = stepScroll({ x: 3, velocity: 5 }, 40, 1 / 60, 40);
+    const s = { x: 3, velocity: 5 };
+    expect(stepScroll(s, 40, 1 / 60, 40, s)).toBe(s);
+    expect(s).toEqual(fresh);
+  });
 });
 
 describe("camera helpers", () => {

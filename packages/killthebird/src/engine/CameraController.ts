@@ -54,7 +54,7 @@ export class CameraController {
       const edge = pointer.inside ? edgeScrollFactor(pointer.u, CAMERA.edge) : 0;
       target = (pointer.keyDirection !== 0 ? pointer.keyDirection : edge) * CAMERA.maxSpeed;
     }
-    this.scroll = stepScroll(this.scroll, target, dt, CAMERA.range);
+    stepScroll(this.scroll, target, dt, CAMERA.range, this.scroll);
 
     const follow = 1 - Math.exp(-4 * dt);
     const u = pointer.inside ? pointer.u : 0.5;
@@ -66,7 +66,8 @@ export class CameraController {
   }
 
   reset(): void {
-    this.scroll = { x: 0, velocity: 0 };
+    this.scroll.x = 0;
+    this.scroll.velocity = 0;
     this.apply();
   }
 

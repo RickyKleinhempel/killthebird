@@ -26,12 +26,14 @@ export interface ScrollState {
 /**
  * Integrates the camera position with exponential velocity smoothing and
  * clamps it to [-range, range]. Hitting a bound stops the camera.
+ * Writes into `out` (may be `state` itself) to avoid a per-frame allocation.
  */
 export function stepScroll(
   state: ScrollState,
   targetVelocity: number,
   dt: number,
   range: number,
+  out: ScrollState = { x: 0, velocity: 0 },
   responsiveness = 9,
 ): ScrollState {
   const blend = 1 - Math.exp(-responsiveness * dt);
@@ -44,7 +46,9 @@ export function stepScroll(
     x = range;
     velocity = 0;
   }
-  return { x, velocity };
+  out.x = x;
+  out.velocity = velocity;
+  return out;
 }
 
 /** Half width of the visible area at a given depth for a perspective camera. */
