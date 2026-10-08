@@ -17,7 +17,7 @@ import { createBonusTarget, type BonusTarget } from "./entities/BonusTarget";
 import type { Effects } from "./Effects";
 import { generateLevel, layerExtent, type LayerId } from "./level";
 import { PALETTE } from "./materials";
-import { mergeStatic, type MergeSource } from "./merge";
+import { mergeStatic, tileGrid, type MergeSource } from "./merge";
 import { WIND_AMPLITUDE } from "./models";
 import { createRng } from "./rng";
 import { createGrassField } from "./shaders/grass";
@@ -34,6 +34,14 @@ export const SKY = {
 } as const;
 
 const SHADOW_LAYERS: ReadonlySet<LayerId> = new Set(["foreground", "near", "mid"]);
+
+/**
+ * Width of the x-tiles static props are merged into, per layer: narrow up
+ * front where the view is narrow, wide at the back, the sky in one piece.
+ * Balances draw calls against culling; the shadow camera sees most tiles of
+ * the casting layers anyway, so narrower tiles only add shadow draw calls.
+ */
+const PROP_TILE: Partial<Record<LayerId, number>> = { foreground: 24, near: 32, mid: 48, far: 96 };
 
 const GROUND = {
   grass: new Color(PALETTE.grass),
@@ -127,9 +135,10 @@ export class World {
       list.push({ object: obj, wind: WIND_AMPLITUDE[p.model] ?? 0, height: modelHeight(asset.scene) });
     }
     for (const [layer, sources] of byLayer) {
-      const { meshes, leftovers } = mergeStatic(sources);
+      const { meshes, leftovers } = mergeStatic(sources, { tileWidth: PROP_TILE[layer] });
+      // Decided per layer, not per tile: the variant also adds the rim light.
+      const swaying = layer !== "sky" && sources.some((s) => s.wind > 0);
       for (const mesh of meshes) {
-        const swaying = layer !== "sky" && sources.some((s) => s.wind > 0);
         if (swaying && mesh.material instanceof MeshStandardMaterial) {
           mesh.material = materialVariant(mesh.material, { wind: true, rim: true });
         }
@@ -182,7 +191,15 @@ export class World {
     const color = new Color();
     const seamZ = -62;
 
-    const build = (x0: number, x1: number, z0: number, z1: number, step: number, heightAt: (x: number, z: number) => number) => {
+    const build = (
+      x0: number,
+      x1: number,
+      z0: number,
+      z1: number,
+      step: number,
+      tile: [cols: number, rows: number],
+      heightAt: (x: number, z: number) => number,
+    ): Mesh[] => {
       const cols = Math.round((x1 - x0) / step);
       const rows = Math.round((z0 - z1) / step);
       const positions = new Float32Array((cols + 1) * (rows + 1) * 3);
@@ -211,13 +228,19 @@ export class World {
       geometry.setAttribute("position", new BufferAttribute(positions, 3));
       geometry.setAttribute("color", new BufferAttribute(colors, 3));
       geometry.setIndex(index);
+      // Normals on the full grid (the shadow normal bias uses them), then cut
+      // into tiles so the parts outside the view are culled.
       geometry.computeVertexNormals();
-      this.owned.push(geometry);
-      const mesh = new Mesh(geometry, material);
-      mesh.receiveShadow = true;
-      mesh.layers.enable(HIT_LAYER);
-      mesh.name = "ground";
-      return mesh;
+      const tiles = tileGrid(geometry, cols, ...tile);
+      geometry.dispose();
+      return tiles.map((part) => {
+        this.owned.push(part);
+        const mesh = new Mesh(part, material);
+        mesh.receiveShadow = true;
+        mesh.layers.enable(HIT_LAYER);
+        mesh.name = "ground";
+        return mesh;
+      });
     };
 
     const coarse = 5;
@@ -227,9 +250,10 @@ export class World {
       return this.height(xa, seamZ) * (1 - t) + this.height(xa + coarse, seamZ) * t;
     };
     // (z0 - seamZ) must be a multiple of the cell size so the last row lands on the seam.
-    const near = build(-110, 110, 5.5, seamZ, 1.25, (x, z) => (z <= seamZ + 1e-6 ? seamHeight(x) : this.height(x, z)));
-    const far = build(-520, 520, seamZ, -482, coarse, this.height);
-    return [near, far];
+    // Tiles: 60 × 34 m near (4 × 2), 260 × 210 m far (4 × 2), about 10 of 16 in view.
+    const near = build(-110, 110, 5.5, seamZ, 1.25, [48, 27], (x, z) => (z <= seamZ + 1e-6 ? seamHeight(x) : this.height(x, z)));
+    const far = build(-520, 520, seamZ, -482, coarse, [52, 42], this.height);
+    return [...near, ...far];
   }
 
   update(dt: number, cameraX: number): void {
