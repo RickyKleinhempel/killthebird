@@ -8,6 +8,13 @@
     "dev": "pnpm --filter killthebird build && pnpm --filter demo dev",
     "models": "pnpm --filter killthebird build:models",
     "typecheck": "pnpm -r typecheck",
-    "audio": "pnpm --filter killthebird build:audio"
+    "audio": "pnpm --filter killthebird build:audio",
+    "bench": "node bench/run.mjs",
+    "bench:shots": "node bench/shots.mjs"
+  },
+  "devDependencies": {
+    "pixelmatch": "7.2.0",
+    "playwright-core": "1.63.0",
+    "pngjs": "7.0.0"
   }
 }

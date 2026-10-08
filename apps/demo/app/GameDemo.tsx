@@ -22,7 +22,10 @@ export function GameDemo() {
   const [log, setLog] = useState<string[]>([]);
   const [best, setBest] = useState<GameResult | null>(null);
   const add = (line: string) => setLog((l) => [line, ...l].slice(0, 8));
-  const debug = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("debug");
+  const query = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const debug = query?.has("debug") ?? false;
+  // ?seed=… makes the level reproducible (used by the benchmarks in /bench).
+  const seed = query?.has("seed") ? Number(query.get("seed")) : undefined;
 
   return (
     <>
@@ -44,6 +47,7 @@ export function GameDemo() {
           ref={game}
           assetsBaseUrl={ASSETS}
           debug={debug}
+          seed={seed}
           onGameStart={() => add("Runde gestartet")}
           onHit={(e) => add(`Treffer: +${e.points} (${e.target}, ${e.layer}) → ${e.totalScore}`)}
           onGameEnd={(r) => {

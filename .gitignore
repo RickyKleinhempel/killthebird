@@ -11,3 +11,4 @@ next-env.d.ts
 /apps/demo/public/killthebird/
 /packages/killthebird/assets-src/blender/__pycache__/
 out/
+/bench/out/
