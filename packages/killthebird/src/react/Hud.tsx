@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import type { HudState } from "../engine/types";
+import type { Difficulty, HudState } from "../engine/types";
 import type { Labels } from "./labels";
 
 export interface HudProps {
@@ -9,11 +9,13 @@ export interface HudProps {
   labels: Labels;
   points: { near: number; mid: number; far: number; bonusMax: number };
   showFullscreenButton: boolean;
+  showDifficultySelect: boolean;
   onStart(): void;
   onResume(): void;
   onReset(): void;
   onToggleMute(): void;
   onToggleFullscreen(): void;
+  onSelectDifficulty(difficulty: Difficulty): void;
 }
 
 const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
@@ -107,6 +109,18 @@ const styles = {
   list: { margin: "14px 0 0", padding: 0, listStyle: "none", fontSize: 15, lineHeight: 1.6, opacity: 0.92 },
   chips: { display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginTop: 14 },
   chip: { padding: "4px 10px", borderRadius: 999, background: "rgba(255,255,255,.1)", fontSize: 13, fontWeight: 700 },
+  segments: { display: "inline-flex", marginTop: 6, padding: 3, borderRadius: 999, background: "rgba(255,255,255,.1)" },
+  segment: {
+    padding: "6px 14px",
+    fontFamily: FONT,
+    fontSize: 14,
+    fontWeight: 800,
+    color: INK,
+    background: "transparent",
+    border: "none",
+    borderRadius: 999,
+    cursor: "pointer",
+  },
 } satisfies Record<string, CSSProperties>;
 
 function formatTime(seconds: number): string {
@@ -145,6 +159,33 @@ function FullscreenIcon({ active }: { active: boolean }) {
   );
 }
 
+const DIFFICULTIES: Difficulty[] = ["easy", "normal", "hard"];
+
+function DifficultySelect({ value, labels, onSelect }: { value: Difficulty; labels: Labels; onSelect(d: Difficulty): void }) {
+  return (
+    <div style={{ marginTop: 16 }}>
+      <div style={styles.caption}>{labels.difficulty}</div>
+      <div role="radiogroup" aria-label={labels.difficulty} style={styles.segments}>
+        {DIFFICULTIES.map((d) => {
+          const selected = d === value;
+          return (
+            <button
+              key={d}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => onSelect(d)}
+              style={selected ? { ...styles.segment, color: "#2b1a06", background: ACCENT, textShadow: "none" } : styles.segment}
+            >
+              {labels.difficulties[d]}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function Modal({ children }: { children: ReactNode }) {
   return (
     <div style={styles.backdrop}>
@@ -153,7 +194,19 @@ function Modal({ children }: { children: ReactNode }) {
   );
 }
 
-export function Hud({ hud, labels, points, showFullscreenButton, onStart, onResume, onReset, onToggleMute, onToggleFullscreen }: HudProps) {
+export function Hud({
+  hud,
+  labels,
+  points,
+  showFullscreenButton,
+  showDifficultySelect,
+  onStart,
+  onResume,
+  onReset,
+  onToggleMute,
+  onToggleFullscreen,
+  onSelectDifficulty,
+}: HudProps) {
   const playing = hud.state === "playing";
   const showStats = playing || hud.state === "paused";
   const lowTime = playing && hud.timeLeft <= 10;
@@ -245,6 +298,7 @@ export function Hud({ hud, labels, points, showFullscreenButton, onStart, onResu
             <span style={styles.chip}>{labels.points.far} · {points.far}</span>
             <span style={styles.chip}>{labels.points.bonus} · ≤{points.bonusMax}</span>
           </div>
+          {showDifficultySelect && <DifficultySelect value={hud.difficulty} labels={labels} onSelect={onSelectDifficulty} />}
           <button type="button" style={styles.button} onClick={onStart}>
             {labels.start}
           </button>
@@ -273,6 +327,7 @@ export function Hud({ hud, labels, points, showFullscreenButton, onStart, onResu
             <span style={styles.chip}>{labels.shots}: {hud.lastResult.shots}</span>
             <span style={styles.chip}>{labels.accuracy}: {Math.round(hud.lastResult.accuracy * 100)} %</span>
           </div>
+          {showDifficultySelect && <DifficultySelect value={hud.difficulty} labels={labels} onSelect={onSelectDifficulty} />}
           <button type="button" style={styles.button} onClick={onStart}>
             {labels.again}
           </button>

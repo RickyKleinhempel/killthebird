@@ -16,7 +16,7 @@ export class BirdManager {
   constructor(
     asset: ModelAsset,
     private readonly rng: Rng,
-    private readonly difficulty: DifficultyConfig,
+    private difficulty: DifficultyConfig,
     private readonly height: HeightFn,
   ) {
     this.root.name = "birds";
@@ -30,6 +30,13 @@ export class BirdManager {
 
   get activeCount(): number {
     return this.birds.reduce((n, b) => n + (b.alive ? 1 : 0), 0);
+  }
+
+  setDifficulty(difficulty: DifficultyConfig): void {
+    const factor = difficulty.speed / this.difficulty.speed;
+    this.difficulty = difficulty;
+    this.scheduler.setDifficulty(difficulty);
+    for (const bird of this.birds) bird.scaleSpeed(factor);
   }
 
   update(dt: number, ctx: SpawnContext, spawning: boolean): void {

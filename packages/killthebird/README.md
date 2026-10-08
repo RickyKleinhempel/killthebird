@@ -104,7 +104,7 @@ export function Game() {
 | `duration` | `number` | `90` | Round length in seconds |
 | `shells` | `number` | `8` | Magazine size |
 | `reloadTime` | `number` | `1.1` | Seconds |
-| `difficulty` | `"easy" \| "normal" \| "hard"` | `"normal"` | Bird count and speed |
+| `difficulty` | `"easy" \| "normal" \| "hard"` | `"normal"` | Bird count and speed. Players can also pick it on the start / end screen |
 | `muted` | `boolean` | `false` | Controlled mute state (the HUD also has a mute button) |
 | `musicVolume` / `sfxVolume` | `number` | `0.45` / `0.9` | 0..1 |
 | `seed` | `number` | `7` | Landscape layout |
@@ -114,6 +114,7 @@ export function Game() {
 | `hideHud` | `boolean` | `false` | Hide the built-in HUD and menus |
 | `fullscreenButton` | `boolean` | `true` | Fullscreen toggle in the HUD (also key `F`) |
 | `startFullscreen` | `boolean` | `false` | "Start game" also switches to browser fullscreen |
+| `difficultySelect` | `boolean` | `true` | Difficulty selector on the start / end screen |
 | `debug` | `boolean` | `false` | fps / draw call overlay |
 | `maxPixelRatio` | `number` | `2` | Caps `devicePixelRatio` |
 | `className` / `style` | | | Applied to the container |
@@ -129,6 +130,7 @@ export function Game() {
 | `onReload()` | Reload started |
 | `onGameEnd(result)` | `{ score, hits, shots, accuracy, durationMs, hitsByLayer }` |
 | `onStateChange(state)` | `"loading" \| "ready" \| "playing" \| "paused" \| "ended" \| "error"` |
+| `onDifficultyChange(difficulty)` | The player picked another difficulty in the HUD |
 | `onHudChange(hud)` | Everything the HUD shows; use it with `hideHud` for a custom HUD |
 | `onError(error)` | e.g. WebGL not available |
 
@@ -137,7 +139,7 @@ export function Game() {
 ```tsx
 const ref = useRef<KillTheBirdHandle>(null);
 <KillTheBird ref={ref} />;
-ref.current?.start(); // also: pause(), resume(), reset(), getHud()
+ref.current?.start(); // also: pause(), resume(), reset(), setDifficulty("hard"), getHud()
 ```
 
 Call `start()` from a user gesture (click) so the browser allows audio.

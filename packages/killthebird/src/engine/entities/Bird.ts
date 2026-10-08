@@ -113,6 +113,11 @@ export class Bird {
     }
   }
 
+  /** Rescales the flight speed, e.g. after a difficulty change. */
+  scaleSpeed(factor: number): void {
+    if (this.state === "flying") this.spawn.speed *= factor;
+  }
+
   hit(): void {
     if (this.state !== "flying") return;
     this.state = "falling";

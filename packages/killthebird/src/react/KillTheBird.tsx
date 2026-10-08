@@ -10,6 +10,7 @@ import {
   type CSSProperties,
 } from "react";
 import type {
+  Difficulty,
   GameInstance,
   GameOptions,
   GameResult,
@@ -33,6 +34,8 @@ export interface KillTheBirdProps extends GameOptions {
   fullscreenButton?: boolean;
   /** The start / play-again button also switches to browser fullscreen. Default: false. */
   startFullscreen?: boolean;
+  /** Show the difficulty selector on the start and end screen. Default: true. */
+  difficultySelect?: boolean;
   className?: string;
   style?: CSSProperties;
   onReady?(): void;
@@ -42,6 +45,8 @@ export interface KillTheBirdProps extends GameOptions {
   onReload?(): void;
   onGameEnd?(result: GameResult): void;
   onStateChange?(state: GameState): void;
+  /** The player picked another difficulty in the HUD. */
+  onDifficultyChange?(difficulty: Difficulty): void;
   onHudChange?(hud: HudState): void;
   onError?(error: Error): void;
 }
@@ -51,6 +56,7 @@ export interface KillTheBirdHandle {
   pause(): void;
   resume(): void;
   reset(): void;
+  setDifficulty(difficulty: Difficulty): void;
   /** Call from a user gesture (e.g. your own button's onClick). */
   setFullscreen(on: boolean): void;
   toggleFullscreen(): void;
@@ -67,6 +73,7 @@ const INITIAL_HUD: HudState = {
   duration: 90,
   loadProgress: 0,
   muted: false,
+  difficulty: "normal",
   fullscreen: false,
   fullscreenSupported: false,
   lastResult: null,
@@ -101,6 +108,7 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
     hideHud = false,
     fullscreenButton = true,
     startFullscreen = false,
+    difficultySelect = true,
     className,
     style,
   } = props;
@@ -116,8 +124,11 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
     timeLeft: duration ?? INITIAL_HUD.timeLeft,
     duration: duration ?? INITIAL_HUD.duration,
     muted: muted ?? false,
+    difficulty: difficulty ?? INITIAL_HUD.difficulty,
   }));
   const mutedRef = useRef(muted ?? false);
+  // Survives game re-creation, so the player's pick is kept.
+  const difficultyRef = useRef<Difficulty>(difficulty ?? INITIAL_HUD.difficulty);
 
   // Options that require a new game instance when they change.
   const structuralKey = JSON.stringify([
@@ -125,7 +136,6 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
     duration,
     shells,
     reloadTime,
-    difficulty,
     musicVolume,
     sfxVolume,
     seed,
@@ -149,7 +159,7 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
           duration,
           shells,
           reloadTime,
-          difficulty,
+          difficulty: difficultyRef.current,
           muted: mutedRef.current,
           musicVolume,
           sfxVolume,
@@ -200,6 +210,12 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
     gameRef.current?.setMuted(muted);
   }, [muted]);
 
+  useEffect(() => {
+    if (difficulty === undefined) return;
+    difficultyRef.current = difficulty;
+    gameRef.current?.setDifficulty(difficulty);
+  }, [difficulty]);
+
   useImperativeHandle(
     ref,
     () => ({
@@ -207,6 +223,10 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
       pause: () => gameRef.current?.pause(),
       resume: () => gameRef.current?.resume(),
       reset: () => gameRef.current?.reset(),
+      setDifficulty: (d: Difficulty) => {
+        difficultyRef.current = d;
+        gameRef.current?.setDifficulty(d);
+      },
       setFullscreen: (on: boolean) => gameRef.current?.setFullscreen(on),
       toggleFullscreen: () => gameRef.current?.toggleFullscreen(),
       getHud: () => gameRef.current?.getHud() ?? null,
@@ -218,6 +238,13 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
     const next = !mutedRef.current;
     mutedRef.current = next;
     gameRef.current?.setMuted(next);
+  }, []);
+
+  const selectDifficulty = useCallback((d: Difficulty) => {
+    if (d === difficultyRef.current) return;
+    difficultyRef.current = d;
+    gameRef.current?.setDifficulty(d);
+    propsRef.current.onDifficultyChange?.(d);
   }, []);
 
   const labels: Labels = { ...LABELS[locale], ...labelOverrides };
@@ -242,6 +269,7 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
           labels={labels}
           points={POINTS}
           showFullscreenButton={fullscreenButton}
+          showDifficultySelect={difficultySelect}
           onStart={() => {
             // Both calls run inside the click, so the browser allows fullscreen and audio.
             if (startFullscreen) gameRef.current?.setFullscreen(true);
@@ -250,6 +278,7 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
           onResume={() => gameRef.current?.resume()}
           onReset={() => gameRef.current?.reset()}
           onToggleMute={toggleMute}
+          onSelectDifficulty={selectDifficulty}
           onToggleFullscreen={() => gameRef.current?.toggleFullscreen()}
         />
       )}

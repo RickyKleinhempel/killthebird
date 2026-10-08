@@ -34,3 +34,25 @@ describe("SpawnScheduler", () => {
     expect(spawned).toBeGreaterThan(4);
   });
 });
+
+describe("difficulty", () => {
+  it("scales bird speed", () => {
+    const ctx = { cameraX: 0, cameraY: 2.2, fov: 45, aspect: 16 / 9 };
+    const speed = (d: keyof typeof DIFFICULTY) =>
+      planBirdSpawn(createRng(3), { ...ctx, speedMultiplier: DIFFICULTY[d].speed }).speed;
+    expect(speed("easy")).toBeLessThan(speed("normal"));
+    expect(speed("hard")).toBeGreaterThan(speed("normal"));
+  });
+
+  it("applies a new bird cap to a running scheduler", () => {
+    const s = new SpawnScheduler(createRng(4), DIFFICULTY.hard);
+    const alive = DIFFICULTY.easy.maxBirds;
+    let spawned = 0;
+    for (let i = 0; i < 300; i++) if (s.update(1 / 60, alive)) spawned++;
+    expect(spawned).toBeGreaterThan(0);
+    s.setDifficulty(DIFFICULTY.easy);
+    spawned = 0;
+    for (let i = 0; i < 300; i++) if (s.update(1 / 60, alive)) spawned++;
+    expect(spawned).toBe(0);
+  });
+});

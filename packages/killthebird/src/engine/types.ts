@@ -19,7 +19,7 @@ export interface GameOptions {
   shells?: number;
   /** Reload time in seconds. Default: 1.1. */
   reloadTime?: number;
-  /** Bird density and speed. Default: "normal". */
+  /** Initial bird density and speed; can be changed later with `setDifficulty`. Default: "normal". */
   difficulty?: Difficulty;
   /** Start muted. Default: false. */
   muted?: boolean;
@@ -75,6 +75,7 @@ export interface HudState {
   /** 0..1 while loading. */
   loadProgress: number;
   muted: boolean;
+  difficulty: Difficulty;
   /** The game container is in browser fullscreen. */
   fullscreen: boolean;
   /** False e.g. on iPhone Safari or in iframes without allow="fullscreen". */
@@ -104,6 +105,8 @@ export interface GameInstance {
   /** Abort the current round and return to the start screen. */
   reset(): void;
   setMuted(muted: boolean): void;
+  /** Changes bird speed and density immediately, also for birds already in the air. */
+  setDifficulty(difficulty: Difficulty): void;
   /** Browser fullscreen for the game container. Call from a user gesture. */
   setFullscreen(on: boolean): void;
   toggleFullscreen(): void;

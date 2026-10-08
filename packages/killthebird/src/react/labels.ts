@@ -1,4 +1,4 @@
-import type { Locale } from "../engine/types";
+import type { Difficulty, Locale } from "../engine/types";
 
 export interface Labels {
   title: string;
@@ -11,6 +11,8 @@ export interface Labels {
   start: string;
   howTo: string[];
   points: { near: string; mid: string; far: string; bonus: string };
+  difficulty: string;
+  difficulties: Record<Difficulty, string>;
   paused: string;
   resume: string;
   restart: string;
@@ -44,6 +46,8 @@ export const LABELS: Record<Locale, Labels> = {
       "Vollbild mit F oder dem Button unten links",
     ],
     points: { near: "nah", mid: "mittel", far: "weit", bonus: "Bonus" },
+    difficulty: "Schwierigkeit",
+    difficulties: { easy: "Leicht", normal: "Normal", hard: "Schwer" },
     paused: "Pause",
     resume: "Weiter",
     restart: "Zum Start",
@@ -75,6 +79,8 @@ export const LABELS: Record<Locale, Labels> = {
       "Fullscreen with F or the button bottom left",
     ],
     points: { near: "near", mid: "middle", far: "far", bonus: "bonus" },
+    difficulty: "Difficulty",
+    difficulties: { easy: "Easy", normal: "Normal", hard: "Hard" },
     paused: "Paused",
     resume: "Resume",
     restart: "Back to start",

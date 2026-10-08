@@ -76,9 +76,9 @@ export interface DifficultyConfig {
 }
 
 export const DIFFICULTY: Record<Difficulty, DifficultyConfig> = {
-  easy: { maxBirds: 8, spawnMin: 0.9, spawnMax: 1.8, speed: 0.8 },
+  easy: { maxBirds: 8, spawnMin: 0.9, spawnMax: 1.8, speed: 0.7 },
   normal: { maxBirds: 11, spawnMin: 0.6, spawnMax: 1.4, speed: 1 },
-  hard: { maxBirds: 14, spawnMin: 0.4, spawnMax: 1.0, speed: 1.25 },
+  hard: { maxBirds: 14, spawnMin: 0.4, spawnMax: 1.0, speed: 1.35 },
 };
 
 /** Size of the bird pool; must cover the hardest difficulty. */

@@ -25,7 +25,7 @@ import { Session } from "./Session";
 import { globalUniforms } from "./shaders/common";
 import { IMPACT_COLORS, Impacts } from "./shaders/impacts";
 import { ScreenOverlay } from "./shaders/screen";
-import type { GameEvents, GameInstance, GameOptions, GameState, HudState } from "./types";
+import type { Difficulty, GameEvents, GameInstance, GameOptions, GameState, HudState } from "./types";
 import { World } from "./World";
 
 function findShootable(object: Object3D | null): Bird | BonusTarget | null {
@@ -56,6 +56,7 @@ export class Game implements GameInstance {
   private world: World | null = null;
   private birds: BirdManager | null = null;
   private muted: boolean;
+  private difficulty: Difficulty;
   private loadProgress = 0;
   private error: string | null = null;
   private raf = 0;
@@ -72,6 +73,7 @@ export class Game implements GameInstance {
   ) {
     this.options = resolveOptions(options);
     this.muted = this.options.muted;
+    this.difficulty = this.options.difficulty;
     this.session = new Session({
       duration: this.options.duration,
       shells: this.options.shells,
@@ -145,7 +147,7 @@ export class Game implements GameInstance {
       if (this.destroyed) return;
       const rng = createRng(this.options.seed * 7919 + 13);
       this.world = new World(this.scene, models, this.options.seed, this.effects!);
-      this.birds = new BirdManager(models.chicken, rng, DIFFICULTY[this.options.difficulty], this.world.height);
+      this.birds = new BirdManager(models.chicken, rng, DIFFICULTY[this.difficulty], this.world.height);
       this.scene.add(this.birds.root);
       this.renderer?.compile(this.scene, this.cameraController.camera);
       this.session.setReady();
@@ -237,6 +239,13 @@ export class Game implements GameInstance {
   setMuted(muted: boolean): void {
     this.muted = muted;
     this.audio.setMuted(muted);
+    this.emitHud();
+  }
+
+  setDifficulty(difficulty: Difficulty): void {
+    if (this.destroyed || difficulty === this.difficulty || !(difficulty in DIFFICULTY)) return;
+    this.difficulty = difficulty;
+    this.birds?.setDifficulty(DIFFICULTY[difficulty]);
     this.emitHud();
   }
 
@@ -432,6 +441,7 @@ export class Game implements GameInstance {
       duration: this.options.duration,
       loadProgress: this.loadProgress,
       muted: this.muted,
+      difficulty: this.difficulty,
       fullscreen: isFullscreen(this.container),
       fullscreenSupported: fullscreenSupported(this.container),
       lastResult: s.state === "ended" ? s.result() : null,
@@ -449,6 +459,7 @@ export class Game implements GameInstance {
       Math.ceil(s.timeLeft),
       Math.round(this.loadProgress * 100),
       this.muted,
+      this.difficulty,
       isFullscreen(this.container),
       this.error,
     ].join("|");

@@ -9,8 +9,12 @@ export class SpawnScheduler {
 
   constructor(
     private readonly rng: Rng,
-    private readonly difficulty: DifficultyConfig,
+    private difficulty: DifficultyConfig,
   ) {}
+
+  setDifficulty(difficulty: DifficultyConfig): void {
+    this.difficulty = difficulty;
+  }
 
   /** Returns true when a bird should be spawned this frame. */
   update(dt: number, aliveBirds: number): boolean {
