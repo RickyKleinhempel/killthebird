@@ -24,6 +24,10 @@ export class Overlay {
   private readonly crosshair: HTMLDivElement;
   private readonly crosshairInner: HTMLDivElement;
   private debugEl: HTMLDivElement | null = null;
+  // Last written crosshair state; style writes are skipped when nothing changed.
+  private crosshairVisible = false;
+  private crosshairX = NaN;
+  private crosshairY = NaN;
 
   constructor(parent: HTMLElement) {
     this.root = document.createElement("div");
@@ -56,8 +60,14 @@ export class Overlay {
   }
 
   setCrosshair(x: number, y: number, visible: boolean): void {
-    this.crosshair.style.display = visible ? "block" : "none";
-    if (visible) this.crosshair.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    if (visible !== this.crosshairVisible) {
+      this.crosshairVisible = visible;
+      this.crosshair.style.display = visible ? "block" : "none";
+    }
+    if (!visible || (x === this.crosshairX && y === this.crosshairY)) return;
+    this.crosshairX = x;
+    this.crosshairY = y;
+    this.crosshair.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   }
 
   kick(): void {

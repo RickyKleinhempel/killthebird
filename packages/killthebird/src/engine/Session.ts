@@ -10,6 +10,21 @@ export interface SessionOptions {
 
 const emptyHits = (): Record<HitLayer, number> => ({ near: 0, mid: 0, far: 0, bonus: 0 });
 
+export interface UpdateResult {
+  readonly reloaded: boolean;
+  readonly ended: boolean;
+}
+
+// Shared update results, indexed by reloaded + 2 * ended (no per-frame allocation).
+const UPDATE_RESULTS: readonly UpdateResult[] = [
+  Object.freeze({ reloaded: false, ended: false }),
+  Object.freeze({ reloaded: true, ended: false }),
+  Object.freeze({ reloaded: false, ended: true }),
+  Object.freeze({ reloaded: true, ended: true }),
+];
+const updateResult = (reloaded: boolean, ended: boolean): UpdateResult =>
+  UPDATE_RESULTS[(reloaded ? 1 : 0) + (ended ? 2 : 0)]!;
+
 /**
  * Rendering-independent game rules: state machine, timer, score and weapon.
  * The Game class drives it every frame and maps its results to visuals.
@@ -96,16 +111,16 @@ export class Session {
   /**
    * Advances the round. Returns flags for things that happened this frame.
    */
-  update(dt: number): { reloaded: boolean; ended: boolean } {
-    if (this.state !== "playing") return { reloaded: false, ended: false };
+  update(dt: number): UpdateResult {
+    if (this.state !== "playing") return updateResult(false, false);
     const reloaded = this.weapon.update(dt);
     this.elapsed += Math.min(dt, this.timeLeft);
     this.timeLeft = Math.max(0, this.timeLeft - dt);
     if (this.timeLeft === 0) {
       this.state = "ended";
-      return { reloaded, ended: true };
+      return updateResult(reloaded, true);
     }
-    return { reloaded, ended: false };
+    return updateResult(reloaded, false);
   }
 
   result(): GameResult {

@@ -11,7 +11,7 @@ import {
 import { GameAudio } from "./Audio";
 import { loadModels } from "./Assets";
 import { CameraController } from "./CameraController";
-import { CAMERA, DIFFICULTY, resolveOptions, type ResolvedOptions } from "./config";
+import { DIFFICULTY, resolveOptions, type ResolvedOptions } from "./config";
 import { BURSTS, Effects } from "./Effects";
 import { Bird, HIT_LAYER } from "./entities/Bird";
 import { BirdManager } from "./entities/BirdManager";
@@ -34,6 +34,13 @@ function findShootable(object: Object3D | null): Bird | BonusTarget | null {
     if (s) return s;
   }
   return null;
+}
+
+/** Stores `value` in slot `i`; returns 1 when it differs from the previous value. */
+function setKey(key: unknown[], i: number, value: unknown): number {
+  if (key[i] === value) return 0;
+  key[i] = value;
+  return 1;
 }
 
 export class Game implements GameInstance {
@@ -63,7 +70,9 @@ export class Game implements GameInstance {
   private lastFrame = 0;
   private visible = true;
   private destroyed = false;
-  private lastHudKey = "";
+  /** Values emitHud last reported, for change detection without a key string. */
+  private readonly hudKey: unknown[] = [];
+  private cursorPlaying: boolean | null = null;
   private fps = { frames: 0, time: 0, value: 0 };
   private readonly cleanup: (() => void)[] = [];
 
@@ -392,23 +401,18 @@ export class Game implements GameInstance {
       this.cameraController.update(dt, this.input, playing);
       const camX = this.cameraController.x;
       this.world?.update(dt, camX);
-      this.birds?.update(
-        dt,
-        {
-          cameraX: camX,
-          cameraY: CAMERA.height,
-          fov: this.cameraController.fov,
-          aspect: this.cameraController.aspect,
-          speedMultiplier: 1,
-        },
-        state !== "loading" && state !== "error",
-      );
+      const cam = this.cameraController;
+      this.birds?.update(dt, camX, cam.fov, cam.aspect, state !== "loading" && state !== "error");
       this.effects?.update(dt);
     }
 
     const playing = this.session.state === "playing";
     this.overlay.setCrosshair(this.input.x, this.input.y, playing && this.input.inside);
-    this.wrapper.style.cursor = playing ? "none" : "default";
+    // Style writes can invalidate style; only touch the cursor when it changes.
+    if (playing !== this.cursorPlaying) {
+      this.cursorPlaying = playing;
+      this.wrapper.style.cursor = playing ? "none" : "default";
+    }
 
     this.renderer.render(this.scene, this.cameraController.camera);
     if (this.options.debug) this.updateDebug(dt);
@@ -452,20 +456,20 @@ export class Game implements GameInstance {
 
   private emitHud(): void {
     const s = this.session;
-    const key = [
-      s.state,
-      s.score,
-      s.weapon.shells,
-      s.weapon.reloading,
-      Math.ceil(s.timeLeft),
-      Math.round(this.loadProgress * 100),
-      this.muted,
-      this.difficulty,
-      isFullscreen(this.container),
-      this.error,
-    ].join("|");
-    if (key === this.lastHudKey) return;
-    this.lastHudKey = key;
+    const k = this.hudKey;
+    // `|` (not `||`) so every slot is refreshed.
+    const changed =
+      setKey(k, 0, s.state) |
+      setKey(k, 1, s.score) |
+      setKey(k, 2, s.weapon.shells) |
+      setKey(k, 3, s.weapon.reloading) |
+      setKey(k, 4, Math.ceil(s.timeLeft)) |
+      setKey(k, 5, Math.round(this.loadProgress * 100)) |
+      setKey(k, 6, this.muted) |
+      setKey(k, 7, this.difficulty) |
+      setKey(k, 8, isFullscreen(this.container)) |
+      setKey(k, 9, this.error);
+    if (!changed) return;
     this.emitter.emit("hud", this.getHud());
   }
 
