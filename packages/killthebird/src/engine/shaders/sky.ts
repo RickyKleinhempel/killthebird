@@ -10,6 +10,8 @@ export interface SkyColors {
  * Sky dome: gradient, warm horizon band towards the sun, sun disc with corona
  * and glare, slowly drifting procedural cirrus clouds, and dithering against
  * banding. The dome follows the camera, so it is always "infinitely" far away.
+ * It is drawn after all opaque geometry and depth tested on the far plane, so
+ * its costly fragment shader only runs for pixels that actually show sky.
  */
 export function createSky(colors: SkyColors): Mesh<SphereGeometry, ShaderMaterial> {
   const material = new ShaderMaterial({
@@ -71,7 +73,7 @@ export function createSky(colors: SkyColors): Mesh<SphereGeometry, ShaderMateria
   });
   const sky = new Mesh(new SphereGeometry(1200, 32, 16), material);
   sky.name = "sky";
-  sky.renderOrder = -1;
+  sky.renderOrder = 100; // last in the opaque list; transparents still follow
   sky.frustumCulled = false;
   return sky;
 }
