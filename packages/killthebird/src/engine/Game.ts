@@ -382,6 +382,7 @@ export class Game implements GameInstance {
     // One clock for all shaders (several games on a page must not speed it up).
     globalUniforms.uTime.value = (now / 1000) % 3600;
     this.screen.update(dt);
+    this.impacts.update();
 
     const state = this.session.state;
     if (state !== "paused") {
