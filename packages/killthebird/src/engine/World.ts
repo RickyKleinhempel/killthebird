@@ -111,7 +111,7 @@ export class World {
       ],
     });
     this.root.add(grass);
-    this.owned.push(grass.geometry, grass.material);
+    this.owned.push(grass);
 
     const level = generateLevel(seed, this.height);
 
