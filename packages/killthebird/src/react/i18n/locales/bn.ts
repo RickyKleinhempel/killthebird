@@ -1,4 +1,37 @@
-// TODO(i18n): translate. English placeholder until the translation lands.
-import en from "./en";
+import type { Labels } from "../../labels";
 
-export default en;
+export default {
+  title: "Kill the Bird",
+  score: "স্কোর",
+  time: "সময়",
+  reload: "রিলোড করো!",
+  reloadHint: "রাইট-ক্লিক বা স্পেস",
+  reloading: "রিলোড হচ্ছে …",
+  loading: "দৃশ্যপট লোড হচ্ছে …",
+  start: "খেলা শুরু করো",
+  howTo: [
+    "মাউস দিয়ে নিশানা করো, লেফট-ক্লিকে গুলি চালাও",
+    "রাইট-ক্লিক, স্পেস বা R দিয়ে রিলোড করো",
+    "স্ক্রল: মাউস কিনারায় নিয়ে যাও বা A/D চাপো",
+    "Esc বা P দিয়ে পজ, F দিয়ে ফুলস্ক্রিন",
+  ],
+  points: { near: "কাছে", mid: "মাঝে", far: "দূরে", bonus: "বোনাস" },
+  difficulty: "কাঠিন্য",
+  difficulties: { easy: "সহজ", normal: "মাঝারি", hard: "কঠিন" },
+  language: "ভাষা",
+  paused: "বিরতি",
+  resume: "চালিয়ে যাও",
+  restart: "শুরুতে ফেরো",
+  timeUp: "সময় শেষ!",
+  yourScore: "তোমার স্কোর",
+  hits: "হিট",
+  shots: "শট",
+  accuracy: "নির্ভুলতা",
+  again: "আবার খেলো",
+  mute: "শব্দ বন্ধ",
+  unmute: "শব্দ চালু",
+  fullscreen: "ফুলস্ক্রিন (F)",
+  exitFullscreen: "ফুলস্ক্রিন বন্ধ (F)",
+  error: "গেমটি চালু করা যায়নি।",
+  errorWebGL: "তোমার ব্রাউজার WebGL সমর্থন করে না, অথচ গেমটির জন্য এটি দরকার।",
+} satisfies Labels;
