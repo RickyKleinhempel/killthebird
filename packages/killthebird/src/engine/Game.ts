@@ -26,7 +26,7 @@ import { Session } from "./Session";
 import { globalUniforms } from "./shaders/common";
 import { IMPACT_COLORS, Impacts } from "./shaders/impacts";
 import { ScreenOverlay } from "./shaders/screen";
-import type { Difficulty, GameEvents, GameInstance, GameOptions, GameState, HudState } from "./types";
+import type { Difficulty, ErrorCode, GameEvents, GameInstance, GameOptions, GameState, HudState } from "./types";
 import { World } from "./World";
 
 function findShootable(object: Object3D | null): Bird | BonusTarget | null {
@@ -71,6 +71,7 @@ export class Game implements GameInstance {
   private difficulty: Difficulty;
   private loadProgress = 0;
   private error: string | null = null;
+  private errorCode: ErrorCode | null = null;
   private raf = 0;
   private lastFrame = 0;
   private visible = true;
@@ -122,7 +123,7 @@ export class Game implements GameInstance {
     try {
       this.renderer = new WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     } catch (err) {
-      this.fail(new Error("WebGL is not available in this browser.", { cause: err }));
+      this.fail(new Error("WebGL is not available in this browser.", { cause: err }), "webgl");
       return;
     }
     const r = this.renderer;
@@ -174,9 +175,10 @@ export class Game implements GameInstance {
     }
   }
 
-  private fail(err: Error): void {
+  private fail(err: Error, code: ErrorCode = "load"): void {
     console.error("[killthebird]", err);
     this.error = err.message;
+    this.errorCode = code;
     this.session.setError();
     this.emitter.emit("error", err);
     this.emitState();
@@ -475,6 +477,7 @@ export class Game implements GameInstance {
       fullscreenSupported: fullscreenSupported(this.container),
       lastResult: s.state === "ended" ? s.result() : null,
       error: this.error,
+      errorCode: this.errorCode,
     };
   }
 

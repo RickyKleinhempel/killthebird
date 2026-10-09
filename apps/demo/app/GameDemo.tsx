@@ -1,7 +1,7 @@
 "use client";
 
-import { KillTheBird, type GameResult, type KillTheBirdHandle } from "killthebird";
-import { useRef, useState } from "react";
+import { KillTheBird, isLocale, type GameResult, type KillTheBirdHandle, type LocaleSetting } from "killthebird";
+import { useEffect, useRef, useState } from "react";
 
 // On GitHub Pages the app lives under a base path (see next.config.ts).
 const ASSETS = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/killthebird/`;
@@ -29,6 +29,15 @@ export function GameDemo() {
   // ?adaptive=0 turns the adaptive resolution off (the benchmarks measure without it).
   const adaptive = query?.get("adaptive");
   const adaptiveQuality = adaptive === "0" ? false : adaptive === "1" ? true : undefined;
+  // ?lang=fr sets the HUD language (read after mount: the server renders without
+  // the query, and the first client render has to match it).
+  const [locale, setLocale] = useState<LocaleSetting>();
+  useEffect(() => {
+    const lang = new URLSearchParams(window.location.search).get("lang");
+    if (lang === "auto" || isLocale(lang)) setLocale(lang);
+  }, []);
+  // ?duration=… sets the round length (bench/i18n-shots.mjs uses a short one).
+  const duration = query?.has("duration") ? Number(query.get("duration")) : undefined;
 
   return (
     <>
@@ -52,6 +61,8 @@ export function GameDemo() {
           debug={debug}
           seed={seed}
           adaptiveQuality={adaptiveQuality}
+          locale={locale}
+          duration={duration}
           onGameStart={() => add("Runde gestartet")}
           onHit={(e) => add(`Treffer: +${e.points} (${e.target}, ${e.layer}) → ${e.totalScore}`)}
           onGameEnd={(r) => {

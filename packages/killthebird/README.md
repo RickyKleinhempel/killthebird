@@ -109,12 +109,13 @@ export function Game() {
 | `musicVolume` / `sfxVolume` | `number` | `0.45` / `0.9` | 0..1 |
 | `seed` | `number` | `7` | Landscape layout |
 | `autoStart` | `boolean` | `false` | Skip the start screen |
-| `locale` | `"de" \| "en"` | `"de"` | HUD language |
-| `labels` | `Partial<Labels>` | | Override individual HUD texts |
+| `locale` | `Locale \| "auto"` | `"auto"` | HUD language, see [Languages](#languages). `"auto"` uses the browser language (English if unsupported) |
+| `labels` | `Partial<Labels>` | | Override individual HUD texts (for every language) |
 | `hideHud` | `boolean` | `false` | Hide the built-in HUD and menus |
 | `fullscreenButton` | `boolean` | `true` | Fullscreen toggle in the HUD (also key `F`) |
 | `startFullscreen` | `boolean` | `false` | "Start game" also switches to browser fullscreen |
 | `difficultySelect` | `boolean` | `true` | Difficulty selector on the start / end screen |
+| `languageSelect` | `boolean` | `true` | Language selector on the start / pause / end screen |
 | `debug` | `boolean` | `false` | fps / draw call overlay |
 | `maxPixelRatio` | `number` | `2` | Caps `devicePixelRatio` |
 | `adaptiveQuality` | `boolean` | `true` | Lowers the render resolution while the frame rate stays below 50 fps (see [Look and performance](#look-and-performance)) |
@@ -132,6 +133,7 @@ export function Game() {
 | `onGameEnd(result)` | `{ score, hits, shots, accuracy, durationMs, hitsByLayer }` |
 | `onStateChange(state)` | `"loading" \| "ready" \| "playing" \| "paused" \| "ended" \| "error"` |
 | `onDifficultyChange(difficulty)` | The player picked another difficulty in the HUD |
+| `onLocaleChange(locale)` | The player picked another language in the HUD (store it and pass it back as `locale` to remember it) |
 | `onHudChange(hud)` | Everything the HUD shows; use it with `hideHud` for a custom HUD |
 | `onError(error)` | e.g. WebGL not available |
 
@@ -140,10 +142,33 @@ export function Game() {
 ```tsx
 const ref = useRef<KillTheBirdHandle>(null);
 <KillTheBird ref={ref} />;
-ref.current?.start(); // also: pause(), resume(), reset(), setDifficulty("hard"), getHud()
+ref.current?.start(); // also: pause(), resume(), reset(), setDifficulty("hard"), setLocale("fr"), getHud()
 ```
 
 Call `start()` from a user gesture (click) so the browser allows audio.
+
+### Languages
+
+The HUD speaks 31 languages:
+
+| | |
+|---|---|
+| Europe | `de` `en` `fr` `es` `it` `pt-BR` `ro` `nl` `sv` `da` `nb` `fi` `pl` `cs` `hu` `ru` `uk` `el` |
+| Middle East (right-to-left: `ar` `he` `fa`) | `tr` `ar` `he` `fa` |
+| Asia | `hi` `bn` `th` `id` `vi` `ja` `ko` `zh-CN` `zh-TW` |
+
+- `locale="auto"` (the default) picks the first supported language from the
+  browser settings, with region variants mapped (`fr-CA` → `fr`, `pt-PT` →
+  `pt-BR`, `zh-HK` → `zh-TW`) and English as the fallback. It is resolved after
+  mount, so server-rendered HTML is English and switches on the client; pass a
+  fixed `locale` if you know the language on the server.
+- Players can switch the language in the HUD (`languageSelect={false}` hides
+  the selector). The pick is not stored; use `onLocaleChange` to persist it.
+- German and English are in the main bundle; every other language is a small
+  chunk loaded when it is used.
+- `LOCALES` lists all languages (`{ code, name, dir }`), `loadLabels(locale)`
+  returns their texts, e.g. for a custom HUD with `hideHud`, and
+  `resolveLocale(setting, navigator.languages)` is the matching used by `"auto"`.
 
 ### Fullscreen
 
@@ -273,4 +298,6 @@ Rechtsklick oder Leertaste lädt nach, `Esc` pausiert, `F` schaltet Vollbild.
 Vollbild gibt es auch über den Button unten links im Spiel, per
 `startFullscreen` direkt beim Start oder aus deiner App per
 `ref.current?.setFullscreen(true)` (muss in einem Klick-Handler passieren). Die Texte sind
-standardmäßig deutsch (`locale="de"`); mit `locale="en"` werden sie englisch.
+in der Sprache des Browsers (`locale="auto"`, 31 Sprachen, sonst Englisch);
+mit z. B. `locale="de"` legst du sie fest. Spieler können die Sprache auch im
+Spiel umstellen.

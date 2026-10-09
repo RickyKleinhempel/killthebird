@@ -1,21 +1,29 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
-import type { Difficulty, HudState } from "../engine/types";
+import { useMemo, type CSSProperties, type ReactNode } from "react";
+import type { Difficulty, HudState, Locale } from "../engine/types";
+import { LOCALES } from "./i18n/registry";
 import type { Labels } from "./labels";
 
 export interface HudProps {
   hud: HudState;
   labels: Labels;
+  /** Locale of `labels` (for number formatting and the lang attribute). */
+  locale: Locale;
+  dir: "ltr" | "rtl";
+  /** The locale the selector shows (may still be loading). */
+  selectedLocale: Locale;
   points: { near: number; mid: number; far: number; bonusMax: number };
   showFullscreenButton: boolean;
   showDifficultySelect: boolean;
+  showLanguageSelect: boolean;
   onStart(): void;
   onResume(): void;
   onReset(): void;
   onToggleMute(): void;
   onToggleFullscreen(): void;
   onSelectDifficulty(difficulty: Difficulty): void;
+  onSelectLocale(locale: Locale): void;
 }
 
 const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
@@ -95,7 +103,7 @@ const styles = {
   },
   ghostButton: {
     marginTop: 18,
-    marginLeft: 10,
+    marginInlineStart: 10,
     padding: "12px 20px",
     fontFamily: FONT,
     fontSize: 16,
@@ -110,6 +118,21 @@ const styles = {
   chips: { display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginTop: 14 },
   chip: { padding: "4px 10px", borderRadius: 999, background: "rgba(255,255,255,.1)", fontSize: 13, fontWeight: 700 },
   segments: { display: "inline-flex", marginTop: 6, padding: 3, borderRadius: 999, background: "rgba(255,255,255,.1)" },
+  settings: { display: "flex", flexWrap: "wrap", gap: "4px 18px", justifyContent: "center", alignItems: "flex-end" },
+  select: {
+    marginTop: 6,
+    padding: "8px 12px",
+    fontFamily: FONT,
+    fontSize: 14,
+    fontWeight: 800,
+    color: INK,
+    background: "rgba(255,255,255,.1)",
+    border: "none",
+    borderRadius: 999,
+    cursor: "pointer",
+    maxWidth: "100%",
+  },
+  option: { color: INK, background: "#2b2116" },
   segment: {
     padding: "6px 14px",
     fontFamily: FONT,
@@ -123,9 +146,20 @@ const styles = {
   },
 } satisfies Record<string, CSSProperties>;
 
-function formatTime(seconds: number): string {
-  const s = Math.ceil(seconds);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+function useFormats(locale: Locale) {
+  return useMemo(() => {
+    const number = new Intl.NumberFormat(locale);
+    const twoDigits = new Intl.NumberFormat(locale, { minimumIntegerDigits: 2 });
+    const percent = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 });
+    return {
+      number: (n: number) => number.format(n),
+      percent: (n: number) => percent.format(n),
+      time: (seconds: number) => {
+        const s = Math.ceil(seconds);
+        return `${number.format(Math.floor(s / 60))}:${twoDigits.format(s % 60)}`;
+      },
+    };
+  }, [locale]);
 }
 
 function Shell({ spent }: { spent: boolean }) {
@@ -163,7 +197,7 @@ const DIFFICULTIES: Difficulty[] = ["easy", "normal", "hard"];
 
 function DifficultySelect({ value, labels, onSelect }: { value: Difficulty; labels: Labels; onSelect(d: Difficulty): void }) {
   return (
-    <div style={{ marginTop: 16 }}>
+    <div>
       <div style={styles.caption}>{labels.difficulty}</div>
       <div role="radiogroup" aria-label={labels.difficulty} style={styles.segments}>
         {DIFFICULTIES.map((d) => {
@@ -186,6 +220,57 @@ function DifficultySelect({ value, labels, onSelect }: { value: Difficulty; labe
   );
 }
 
+function LanguageSelect({ value, labels, onSelect }: { value: Locale; labels: Labels; onSelect(l: Locale): void }) {
+  return (
+    <label style={{ display: "block", maxWidth: "100%" }}>
+      <div style={styles.caption}>{labels.language}</div>
+      <select value={value} onChange={(e) => onSelect(e.currentTarget.value as Locale)} style={styles.select}>
+        {LOCALES.map((l) => (
+          <option key={l.code} value={l.code} lang={l.code} dir={l.dir} style={styles.option}>
+            {l.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function Settings({
+  difficulty,
+  locale,
+  labels,
+  showDifficulty,
+  showLanguage,
+  onSelectDifficulty,
+  onSelectLocale,
+}: {
+  difficulty?: Difficulty;
+  locale: Locale;
+  labels: Labels;
+  showDifficulty: boolean;
+  showLanguage: boolean;
+  onSelectDifficulty(d: Difficulty): void;
+  onSelectLocale(l: Locale): void;
+}) {
+  const withDifficulty = showDifficulty && difficulty !== undefined;
+  if (!withDifficulty && !showLanguage) return null;
+  return (
+    <div style={{ ...styles.settings, marginTop: 16 }}>
+      {withDifficulty && <DifficultySelect value={difficulty} labels={labels} onSelect={onSelectDifficulty} />}
+      {showLanguage && <LanguageSelect value={locale} labels={labels} onSelect={onSelectLocale} />}
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <span style={{ ...styles.chip, display: "inline-flex", gap: 6 }}>
+      <span style={{ fontWeight: 600, opacity: 0.85 }}>{label}</span>
+      <span>{value}</span>
+    </span>
+  );
+}
+
 function Modal({ children }: { children: ReactNode }) {
   return (
     <div style={styles.backdrop}>
@@ -197,32 +282,49 @@ function Modal({ children }: { children: ReactNode }) {
 export function Hud({
   hud,
   labels,
+  locale,
+  dir,
+  selectedLocale,
   points,
   showFullscreenButton,
   showDifficultySelect,
+  showLanguageSelect,
   onStart,
   onResume,
   onReset,
   onToggleMute,
   onToggleFullscreen,
   onSelectDifficulty,
+  onSelectLocale,
 }: HudProps) {
+  const format = useFormats(locale);
+  const settings = (withDifficulty: boolean) => (
+    <Settings
+      difficulty={withDifficulty ? hud.difficulty : undefined}
+      locale={selectedLocale}
+      labels={labels}
+      showDifficulty={showDifficultySelect}
+      showLanguage={showLanguageSelect}
+      onSelectDifficulty={onSelectDifficulty}
+      onSelectLocale={onSelectLocale}
+    />
+  );
   const playing = hud.state === "playing";
   const showStats = playing || hud.state === "paused";
   const lowTime = playing && hud.timeLeft <= 10;
   const needsReload = playing && hud.shells === 0 && !hud.reloading;
 
   return (
-    <div style={styles.root}>
+    <div style={styles.root} lang={locale} dir={dir} data-ktb-hud="">
       {showStats && (
         <>
           <div style={{ ...styles.panel, left: 12, top: 12 }}>
             <div style={styles.caption}>{labels.score}</div>
-            <div style={styles.value}>{hud.score}</div>
+            <div style={styles.value}>{format.number(hud.score)}</div>
           </div>
           <div style={{ ...styles.panel, right: 12, top: 12, textAlign: "right" }}>
             <div style={styles.caption}>{labels.time}</div>
-            <div style={{ ...styles.value, color: lowTime ? "#ff6b5b" : INK }}>{formatTime(hud.timeLeft)}</div>
+            <div style={{ ...styles.value, color: lowTime ? "#ff6b5b" : INK }}>{format.time(hud.timeLeft)}</div>
           </div>
           <div style={{ ...styles.panel, right: 12, bottom: 12, display: "flex", gap: 4, alignItems: "flex-end" }}>
             {Array.from({ length: hud.maxShells }, (_, i) => (
@@ -288,17 +390,19 @@ export function Hud({
         <Modal>
           <h2 style={styles.title}>{labels.title}</h2>
           <ul style={styles.list}>
-            {labels.howTo.map((line) => (
-              <li key={line}>{line}</li>
+            {labels.howTo.map((line, i) => (
+              <li key={i}>{line}</li>
             ))}
           </ul>
           <div style={styles.chips}>
-            <span style={styles.chip}>{labels.points.near} · {points.near}</span>
-            <span style={styles.chip}>{labels.points.mid} · {points.mid}</span>
-            <span style={styles.chip}>{labels.points.far} · {points.far}</span>
-            <span style={styles.chip}>{labels.points.bonus} · ≤{points.bonusMax}</span>
+            <span style={styles.chip}>{labels.points.near} · {format.number(points.near)}</span>
+            <span style={styles.chip}>{labels.points.mid} · {format.number(points.mid)}</span>
+            <span style={styles.chip}>{labels.points.far} · {format.number(points.far)}</span>
+            <span style={styles.chip}>
+              {labels.points.bonus} · <bdi>≤{format.number(points.bonusMax)}</bdi>
+            </span>
           </div>
-          {showDifficultySelect && <DifficultySelect value={hud.difficulty} labels={labels} onSelect={onSelectDifficulty} />}
+          {settings(true)}
           <button type="button" style={styles.button} onClick={onStart}>
             {labels.start}
           </button>
@@ -314,6 +418,7 @@ export function Hud({
           <button type="button" style={styles.ghostButton} onClick={onReset}>
             {labels.restart}
           </button>
+          {settings(false)}
         </Modal>
       )}
 
@@ -321,13 +426,13 @@ export function Hud({
         <Modal>
           <h2 style={styles.title}>{labels.timeUp}</h2>
           <div style={{ marginTop: 14, ...styles.caption }}>{labels.yourScore}</div>
-          <div style={{ fontSize: 64, fontWeight: 900, lineHeight: 1.05, color: INK }}>{hud.lastResult.score}</div>
+          <div style={{ fontSize: 64, fontWeight: 900, lineHeight: 1.05, color: INK }}>{format.number(hud.lastResult.score)}</div>
           <div style={styles.chips}>
-            <span style={styles.chip}>{labels.hits}: {hud.lastResult.hits}</span>
-            <span style={styles.chip}>{labels.shots}: {hud.lastResult.shots}</span>
-            <span style={styles.chip}>{labels.accuracy}: {Math.round(hud.lastResult.accuracy * 100)} %</span>
+            <Stat label={labels.hits} value={format.number(hud.lastResult.hits)} />
+            <Stat label={labels.shots} value={format.number(hud.lastResult.shots)} />
+            <Stat label={labels.accuracy} value={format.percent(hud.lastResult.accuracy)} />
           </div>
-          {showDifficultySelect && <DifficultySelect value={hud.difficulty} labels={labels} onSelect={onSelectDifficulty} />}
+          {settings(true)}
           <button type="button" style={styles.button} onClick={onStart}>
             {labels.again}
           </button>
@@ -337,7 +442,16 @@ export function Hud({
       {hud.state === "error" && (
         <Modal>
           <h2 style={{ ...styles.title, fontSize: 28 }}>{labels.error}</h2>
-          {hud.error && <p style={{ marginTop: 12, opacity: 0.8 }}>{hud.error}</p>}
+          {hud.errorCode === "webgl" ? (
+            <p style={{ marginTop: 12, opacity: 0.9 }}>{labels.errorWebGL}</p>
+          ) : (
+            hud.error && (
+              // Technical detail, always English.
+              <p lang="en" dir="ltr" style={{ marginTop: 12, fontSize: 13, opacity: 0.7 }}>
+                {hud.error}
+              </p>
+            )
+          )}
         </Modal>
       )}
 

@@ -5,7 +5,14 @@
 export type BirdLayer = "near" | "mid" | "far";
 export type HitLayer = BirdLayer | "bonus";
 export type Difficulty = "easy" | "normal" | "hard";
-export type Locale = "de" | "en";
+/** HUD languages (BCP 47 tags). */
+export type Locale =
+  | "de" | "en" | "fr" | "es" | "it" | "pt-BR" | "ro" | "nl" | "sv" | "da" | "nb" | "fi" | "pl" | "cs" | "hu"
+  | "ru" | "uk" | "el" | "tr" | "ar" | "he" | "fa" | "hi" | "bn" | "th" | "id" | "vi" | "ja" | "ko" | "zh-CN" | "zh-TW";
+/** A locale, or "auto" for the browser language (falls back to English). */
+export type LocaleSetting = Locale | "auto";
+/** Why the game could not start: "webgl" = no WebGL in this browser, "load" = anything else. */
+export type ErrorCode = "webgl" | "load";
 export type GameState = "loading" | "ready" | "playing" | "paused" | "ended" | "error";
 
 export type BonusKind = "windmill" | "scarecrow" | "signpost" | "pumpkin" | "peekaboo";
@@ -88,7 +95,9 @@ export interface HudState {
   /** False e.g. on iPhone Safari or in iframes without allow="fullscreen". */
   fullscreenSupported: boolean;
   lastResult: GameResult | null;
+  /** Technical error message (English, not meant for players). */
   error: string | null;
+  errorCode: ErrorCode | null;
 }
 
 export interface GameEvents {
