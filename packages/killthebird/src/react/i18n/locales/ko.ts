@@ -1,4 +1,37 @@
-// TODO(i18n): translate. English placeholder until the translation lands.
-import en from "./en";
+import type { Labels } from "../../labels";
 
-export default en;
+export default {
+  title: "Kill the Bird",
+  score: "점수",
+  time: "시간",
+  reload: "재장전!",
+  reloadHint: "우클릭 또는 스페이스 바",
+  reloading: "재장전 중…",
+  loading: "풍경을 불러오는 중…",
+  start: "게임 시작",
+  howTo: [
+    "마우스로 조준하고 좌클릭으로 사격",
+    "우클릭, 스페이스 바 또는 R로 재장전",
+    "마우스를 화면 가장자리로 옮기거나 A/D로 스크롤",
+    "Esc 또는 P로 일시정지, F로 전체 화면",
+  ],
+  points: { near: "근거리", mid: "중거리", far: "원거리", bonus: "보너스" },
+  difficulty: "난이도",
+  difficulties: { easy: "쉬움", normal: "보통", hard: "어려움" },
+  language: "언어",
+  paused: "일시정지",
+  resume: "계속하기",
+  restart: "처음으로",
+  timeUp: "시간 종료!",
+  yourScore: "내 점수",
+  hits: "명중",
+  shots: "발사",
+  accuracy: "명중률",
+  again: "다시 하기",
+  mute: "음소거",
+  unmute: "음소거 해제",
+  fullscreen: "전체 화면 (F)",
+  exitFullscreen: "전체 화면 종료 (F)",
+  error: "게임을 시작할 수 없습니다.",
+  errorWebGL: "사용 중인 브라우저가 WebGL을 지원하지 않습니다. 이 게임을 실행하려면 WebGL이 필요합니다.",
+} satisfies Labels;
