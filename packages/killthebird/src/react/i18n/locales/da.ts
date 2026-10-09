@@ -1,4 +1,37 @@
-// TODO(i18n): translate. English placeholder until the translation lands.
-import en from "./en";
+import type { Labels } from "../../labels";
 
-export default en;
+export default {
+  title: "Kill the Bird",
+  score: "Point",
+  time: "Tid",
+  reload: "Genlad!",
+  reloadHint: "Højreklik eller mellemrum",
+  reloading: "Genlader …",
+  loading: "Indlæser landskab …",
+  start: "Start spillet",
+  howTo: [
+    "Sigt med musen, skyd med venstreklik",
+    "Genlad med højreklik, mellemrum eller R",
+    "Rul ved at føre musen ud til kanten eller med A/D",
+    "Pause med Esc eller P, fuld skærm med F",
+  ],
+  points: { near: "nær", mid: "middel", far: "fjern", bonus: "bonus" },
+  difficulty: "Sværhedsgrad",
+  difficulties: { easy: "Let", normal: "Normal", hard: "Svær" },
+  language: "Sprog",
+  paused: "Pause",
+  resume: "Fortsæt",
+  restart: "Til start",
+  timeUp: "Tiden er gået!",
+  yourScore: "Dine point",
+  hits: "Træffere",
+  shots: "Skud",
+  accuracy: "Træfsikkerhed",
+  again: "Spil igen",
+  mute: "Lyd fra",
+  unmute: "Lyd til",
+  fullscreen: "Fuld skærm (F)",
+  exitFullscreen: "Afslut fuld skærm (F)",
+  error: "Spillet kunne ikke startes.",
+  errorWebGL: "Din browser understøtter ikke WebGL, som spillet kræver.",
+} satisfies Labels;
