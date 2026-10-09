@@ -1,4 +1,37 @@
-// TODO(i18n): translate. English placeholder until the translation lands.
-import en from "./en";
+import type { Labels } from "../../labels";
 
-export default en;
+export default {
+  title: "Kill the Bird",
+  score: "得分",
+  time: "时间",
+  reload: "装弹！",
+  reloadHint: "右键或空格键",
+  reloading: "装弹中……",
+  loading: "正在加载场景……",
+  start: "开始游戏",
+  howTo: [
+    "用鼠标瞄准，左键射击",
+    "右键、空格键或 R 键装弹",
+    "鼠标移至屏幕边缘或按 A/D 键移动视角",
+    "Esc 或 P 键暂停，F 键全屏",
+  ],
+  points: { near: "近", mid: "中", far: "远", bonus: "奖励" },
+  difficulty: "难度",
+  difficulties: { easy: "简单", normal: "普通", hard: "困难" },
+  language: "语言",
+  paused: "已暂停",
+  resume: "继续",
+  restart: "返回主菜单",
+  timeUp: "时间到！",
+  yourScore: "你的得分",
+  hits: "命中",
+  shots: "射击",
+  accuracy: "命中率",
+  again: "再玩一次",
+  mute: "静音",
+  unmute: "取消静音",
+  fullscreen: "全屏（F）",
+  exitFullscreen: "退出全屏（F）",
+  error: "游戏无法启动。",
+  errorWebGL: "你的浏览器不支持 WebGL，无法运行本游戏。",
+} satisfies Labels;
