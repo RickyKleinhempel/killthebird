@@ -1,4 +1,37 @@
-// TODO(i18n): translate. English placeholder until the translation lands.
-import en from "./en";
+import type { Labels } from "../../labels";
 
-export default en;
+export default {
+  title: "Kill the Bird",
+  score: "Wynik",
+  time: "Czas",
+  reload: "Przeładuj!",
+  reloadHint: "Prawy przycisk lub spacja",
+  reloading: "Przeładowanie…",
+  loading: "Ładowanie krajobrazu…",
+  start: "Rozpocznij grę",
+  howTo: [
+    "Celuj myszą, strzelaj lewym przyciskiem",
+    "Przeładuj prawym przyciskiem, spacją lub R",
+    "Przewijaj: mysz przy krawędzi ekranu lub A/D",
+    "Pauza: Esc lub P, pełny ekran: F",
+  ],
+  points: { near: "blisko", mid: "średnio", far: "daleko", bonus: "bonus" },
+  difficulty: "Poziom trudności",
+  difficulties: { easy: "Łatwy", normal: "Normalny", hard: "Trudny" },
+  language: "Język",
+  paused: "Pauza",
+  resume: "Wznów",
+  restart: "Wróć do menu",
+  timeUp: "Koniec czasu!",
+  yourScore: "Twój wynik",
+  hits: "Trafienia",
+  shots: "Strzały",
+  accuracy: "Celność",
+  again: "Zagraj ponownie",
+  mute: "Wycisz",
+  unmute: "Włącz dźwięk",
+  fullscreen: "Pełny ekran (F)",
+  exitFullscreen: "Wyjdź z pełnego ekranu (F)",
+  error: "Nie udało się uruchomić gry.",
+  errorWebGL: "Twoja przeglądarka nie obsługuje WebGL – a gra go wymaga.",
+} satisfies Labels;
