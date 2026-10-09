@@ -18,15 +18,22 @@ import type {
   HitEvent,
   HudState,
   Locale,
+  LocaleSetting,
   ShotEvent,
 } from "../engine/types";
 import { Hud } from "./Hud";
-import { LABELS, type Labels } from "./labels";
+import { browserLanguages, isLocale, localeDir, resolveLocale } from "./i18n/registry";
+import { useLabels } from "./i18n/useLabels";
+import type { Labels } from "./labels";
 
 export interface KillTheBirdProps extends GameOptions {
-  /** HUD language. Default: "de". */
-  locale?: Locale;
-  /** Override single HUD texts. */
+  /**
+   * HUD language. "auto" picks the browser language (English if it is not
+   * supported). Players can switch it in the HUD; changing this prop resets
+   * their pick. Default: "auto".
+   */
+  locale?: LocaleSetting;
+  /** Override single HUD texts (applies to every language). */
   labels?: Partial<Labels>;
   /** Hide the built-in HUD and menus (use the events / ref to build your own). */
   hideHud?: boolean;
@@ -36,6 +43,8 @@ export interface KillTheBirdProps extends GameOptions {
   startFullscreen?: boolean;
   /** Show the difficulty selector on the start and end screen. Default: true. */
   difficultySelect?: boolean;
+  /** Show the language selector on the start, pause and end screen. Default: true. */
+  languageSelect?: boolean;
   className?: string;
   style?: CSSProperties;
   onReady?(): void;
@@ -47,6 +56,8 @@ export interface KillTheBirdProps extends GameOptions {
   onStateChange?(state: GameState): void;
   /** The player picked another difficulty in the HUD. */
   onDifficultyChange?(difficulty: Difficulty): void;
+  /** The player picked another language in the HUD. */
+  onLocaleChange?(locale: Locale): void;
   onHudChange?(hud: HudState): void;
   onError?(error: Error): void;
 }
@@ -57,6 +68,7 @@ export interface KillTheBirdHandle {
   resume(): void;
   reset(): void;
   setDifficulty(difficulty: Difficulty): void;
+  setLocale(locale: Locale): void;
   /** Call from a user gesture (e.g. your own button's onClick). */
   setFullscreen(on: boolean): void;
   toggleFullscreen(): void;
@@ -78,6 +90,7 @@ const INITIAL_HUD: HudState = {
   fullscreenSupported: false,
   lastResult: null,
   error: null,
+  errorCode: null,
 };
 
 // Kept in sync with engine/config.ts without importing the engine (and three.js)
@@ -104,12 +117,13 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
     debug,
     maxPixelRatio,
     adaptiveQuality,
-    locale = "de",
+    locale: localeSetting = "auto",
     labels: labelOverrides,
     hideHud = false,
     fullscreenButton = true,
     startFullscreen = false,
     difficultySelect = true,
+    languageSelect = true,
     className,
     style,
   } = props;
@@ -130,6 +144,17 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
   const mutedRef = useRef(muted ?? false);
   // Survives game re-creation, so the player's pick is kept.
   const difficultyRef = useRef<Difficulty>(difficulty ?? INITIAL_HUD.difficulty);
+
+  // "auto" is resolved after mount: the server cannot know the browser
+  // language, and the first client render has to match the server's.
+  const [locale, setLocale] = useState<Locale>(() =>
+    localeSetting === "auto" ? "en" : resolveLocale(localeSetting),
+  );
+  useEffect(() => {
+    setLocale(resolveLocale(localeSetting, browserLanguages()));
+  }, [localeSetting]);
+  // A locale whose chunk failed to load: go back to the one still shown.
+  const shown = useLabels(locale, setLocale);
 
   // Options that require a new game instance when they change.
   const structuralKey = JSON.stringify([
@@ -194,7 +219,7 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
       .catch((err: unknown) => {
         if (disposed) return;
         const error = err instanceof Error ? err : new Error(String(err));
-        setHud((h) => ({ ...h, state: "error", error: error.message }));
+        setHud((h) => ({ ...h, state: "error", error: error.message, errorCode: "load" }));
         propsRef.current.onError?.(error);
       });
 
@@ -230,6 +255,10 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
         difficultyRef.current = d;
         gameRef.current?.setDifficulty(d);
       },
+      setLocale: (l: Locale) => {
+        if (isLocale(l)) setLocale(l);
+        else console.warn(`[killthebird] unsupported locale "${String(l)}"`);
+      },
       setFullscreen: (on: boolean) => gameRef.current?.setFullscreen(on),
       toggleFullscreen: () => gameRef.current?.toggleFullscreen(),
       getHud: () => gameRef.current?.getHud() ?? null,
@@ -250,7 +279,12 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
     propsRef.current.onDifficultyChange?.(d);
   }, []);
 
-  const labels: Labels = { ...LABELS[locale], ...labelOverrides };
+  const selectLocale = useCallback((l: Locale) => {
+    setLocale(l);
+    propsRef.current.onLocaleChange?.(l);
+  }, []);
+
+  const labels: Labels = { ...shown.labels, ...labelOverrides };
 
   return (
     <div
@@ -270,9 +304,13 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
         <Hud
           hud={hud}
           labels={labels}
+          locale={shown.locale}
+          dir={localeDir(shown.locale)}
+          selectedLocale={locale}
           points={POINTS}
           showFullscreenButton={fullscreenButton}
           showDifficultySelect={difficultySelect}
+          showLanguageSelect={languageSelect}
           onStart={() => {
             // Both calls run inside the click, so the browser allows fullscreen and audio.
             if (startFullscreen) gameRef.current?.setFullscreen(true);
@@ -282,6 +320,7 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
           onReset={() => gameRef.current?.reset()}
           onToggleMute={toggleMute}
           onSelectDifficulty={selectDifficulty}
+          onSelectLocale={selectLocale}
           onToggleFullscreen={() => gameRef.current?.toggleFullscreen()}
         />
       )}

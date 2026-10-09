@@ -76,6 +76,8 @@ export class Input {
   }
 
   private keyDown(e: KeyboardEvent) {
+    // Keys typed into the HUD's form controls (e.g. the language selector) are theirs.
+    if (isFormControl(e.target)) return;
     switch (e.code) {
       case "Space":
       case "KeyR":
@@ -115,4 +117,9 @@ export class Input {
     for (const fn of this.cleanup) fn();
     this.cleanup.length = 0;
   }
+}
+
+function isFormControl(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return target.isContentEditable || target.tagName === "SELECT" || target.tagName === "INPUT" || target.tagName === "TEXTAREA";
 }

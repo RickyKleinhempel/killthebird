@@ -1,0 +1,38 @@
+import type { Labels } from "../../labels";
+
+// "‌" is the zero-width non-joiner (نیم‌فاصله) Persian orthography requires.
+export default {
+  title: "Kill the Bird",
+  score: "امتیاز",
+  time: "زمان",
+  reload: "دوباره پر کن!",
+  reloadHint: "کلیک راست یا کلید فاصله",
+  reloading: "در حال پر کردن…",
+  loading: "در حال بارگذاری منظره…",
+  start: "شروع بازی",
+  howTo: [
+    "با ماوس نشانه بگیر و با کلیک چپ شلیک کن",
+    "با کلیک راست، کلید فاصله یا R دوباره پر کن",
+    "برای جابه‌جایی، ماوس را به لبهٔ صفحه ببر یا A/D را بزن",
+    "توقف با Esc یا P، تمام‌صفحه با F",
+  ],
+  points: { near: "نزدیک", mid: "متوسط", far: "دور", bonus: "جایزه" },
+  difficulty: "سطح سختی",
+  difficulties: { easy: "آسان", normal: "معمولی", hard: "سخت" },
+  language: "زبان",
+  paused: "توقف",
+  resume: "ادامه",
+  restart: "بازگشت به شروع",
+  timeUp: "وقت تمام شد!",
+  yourScore: "امتیاز تو",
+  hits: "اصابت",
+  shots: "شلیک",
+  accuracy: "دقت",
+  again: "دوباره بازی کن",
+  mute: "قطع صدا",
+  unmute: "وصل صدا",
+  fullscreen: "تمام‌صفحه (F)",
+  exitFullscreen: "خروج از تمام‌صفحه (F)",
+  error: "بازی اجرا نشد.",
+  errorWebGL: "مرورگرت از WebGL پشتیبانی نمی‌کند و بازی به آن نیاز دارد.",
+} satisfies Labels;

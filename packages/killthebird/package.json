@@ -1,6 +1,6 @@
 {
   "name": "killthebird",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "3D moorland bird-shooting arcade game (three.js) as a drop-in React / Next.js component. Parallax depth layers, edge scrolling, sound, bonus targets and score callbacks.",
   "license": "MIT",
   "type": "module",

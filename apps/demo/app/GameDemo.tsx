@@ -1,7 +1,7 @@
 "use client";
 
-import { KillTheBird, type GameResult, type KillTheBirdHandle } from "killthebird";
-import { useRef, useState } from "react";
+import { KillTheBird, isLocale, type GameResult, type KillTheBirdHandle, type Locale, type LocaleSetting } from "killthebird";
+import { useEffect, useRef, useState } from "react";
 
 // On GitHub Pages the app lives under a base path (see next.config.ts).
 const ASSETS = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/killthebird/`;
@@ -17,6 +17,17 @@ const buttonStyle = {
   cursor: "pointer",
 } as const;
 
+const LOCALE_KEY = "killthebird-demo:locale";
+
+function readStoredLocale(): Locale | null {
+  try {
+    const stored = localStorage.getItem(LOCALE_KEY);
+    return isLocale(stored) ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
 export function GameDemo() {
   const game = useRef<KillTheBirdHandle>(null);
   const [log, setLog] = useState<string[]>([]);
@@ -29,6 +40,31 @@ export function GameDemo() {
   // ?adaptive=0 turns the adaptive resolution off (the benchmarks measure without it).
   const adaptive = query?.get("adaptive");
   const adaptiveQuality = adaptive === "0" ? false : adaptive === "1" ? true : undefined;
+  // HUD language: ?lang=fr wins, else the language the player last picked in the
+  // HUD (localStorage), else "auto" (undefined). Read after mount: the server
+  // renders without the query or storage, and the first client render has to match it.
+  const [locale, setLocale] = useState<LocaleSetting>();
+  useEffect(() => {
+    const lang = new URLSearchParams(window.location.search).get("lang");
+    if (lang === "auto" || isLocale(lang)) setLocale(lang);
+    else {
+      const stored = readStoredLocale();
+      if (stored) setLocale(stored);
+    }
+  }, []);
+  // Remember the player's pick, and keep the `locale` prop in sync with it so a
+  // later prop change can never reset the pick to a stale value.
+  const pickLocale = (picked: Locale) => {
+    setLocale(picked);
+    try {
+      localStorage.setItem(LOCALE_KEY, picked);
+    } catch {
+      // Storage blocked (private mode, disabled site data): just don't remember it.
+    }
+  };
+  // ?duration=… sets the round length (bench/i18n-shots.mjs uses a short one).
+  const durationParam = Number(query?.get("duration"));
+  const duration = Number.isFinite(durationParam) && durationParam > 0 ? durationParam : undefined;
 
   return (
     <>
@@ -42,7 +78,7 @@ export function GameDemo() {
             game.current?.start();
           }}
         >
-          Im Vollbild starten
+          Play fullscreen
         </button>
       </div>
       <div style={{ width: "100%", aspectRatio: "16 / 9", maxHeight: "80vh", borderRadius: 12, overflow: "hidden" }}>
@@ -52,17 +88,20 @@ export function GameDemo() {
           debug={debug}
           seed={seed}
           adaptiveQuality={adaptiveQuality}
-          onGameStart={() => add("Runde gestartet")}
-          onHit={(e) => add(`Treffer: +${e.points} (${e.target}, ${e.layer}) → ${e.totalScore}`)}
+          locale={locale}
+          onLocaleChange={pickLocale}
+          duration={duration}
+          onGameStart={() => add("Round started")}
+          onHit={(e) => add(`Hit: +${e.points} (${e.target}, ${e.layer}) → ${e.totalScore}`)}
           onGameEnd={(r) => {
-            add(`Ende: ${r.score} Punkte, ${r.hits}/${r.shots} Treffer`);
+            add(`Game over: ${r.score} points, ${r.hits}/${r.shots} hits`);
             setBest((b) => (!b || r.score > b.score ? r : b));
           }}
         />
       </div>
       <section style={{ display: "flex", gap: 24, marginTop: 12, fontSize: 14 }}>
         <div>
-          <strong>Bestwert:</strong> {best ? best.score : "–"}
+          <strong>Best score:</strong> {best ? best.score : "–"}
         </div>
         <ol style={{ margin: 0, paddingLeft: 18, opacity: 0.8 }}>
           {log.map((line, i) => (
