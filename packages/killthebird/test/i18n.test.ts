@@ -64,6 +64,8 @@ describe("resolveLocale", () => {
     expect(resolveLocale("auto", [])).toBe("en");
     expect(resolveLocale("auto", ["sw", "xx-YY"])).toBe("en");
     expect(resolveLocale("klingon")).toBe("en");
+    expect(resolveLocale("constructor")).toBe("en");
+    expect(resolveLocale("auto", ["__proto__", "toString"])).toBe("en");
   });
 
   it("isLocale", () => {

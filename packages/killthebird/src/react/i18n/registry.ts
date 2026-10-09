@@ -75,7 +75,13 @@ export async function loadLabels(locale: Locale): Promise<Labels> {
 
 const BY_LOWER = new Map((Object.keys(REGISTRY) as Locale[]).map((code) => [code.toLowerCase(), code]));
 // Language subtags whose best match is not "same subtag".
-const LANGUAGE_ALIASES: Record<string, Locale> = { pt: "pt-BR", no: "nb", nn: "nb", iw: "he", in: "id" };
+const LANGUAGE_ALIASES = new Map<string, Locale>([
+  ["pt", "pt-BR"],
+  ["no", "nb"],
+  ["nn", "nb"],
+  ["iw", "he"],
+  ["in", "id"],
+]);
 
 function matchTag(tag: string): Locale | undefined {
   const lower = tag.trim().toLowerCase().replace(/_/g, "-");
@@ -88,7 +94,7 @@ function matchTag(tag: string): Locale | undefined {
     const traditional = rest.some((s) => s === "hant" || s === "tw" || s === "hk" || s === "mo");
     return traditional ? "zh-TW" : "zh-CN";
   }
-  return LANGUAGE_ALIASES[language] ?? BY_LOWER.get(language);
+  return LANGUAGE_ALIASES.get(language) ?? BY_LOWER.get(language);
 }
 
 /**
