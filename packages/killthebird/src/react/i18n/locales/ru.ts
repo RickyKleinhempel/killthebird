@@ -1,4 +1,37 @@
-// TODO(i18n): translate. English placeholder until the translation lands.
-import en from "./en";
+import type { Labels } from "../../labels";
 
-export default en;
+export default {
+  title: "Kill the Bird",
+  score: "Счёт",
+  time: "Время",
+  reload: "Перезаряди!",
+  reloadHint: "Правый клик или пробел",
+  reloading: "Перезарядка…",
+  loading: "Загрузка пейзажа…",
+  start: "Начать игру",
+  howTo: [
+    "Целься мышью, стреляй левым кликом",
+    "Перезарядка — правый клик, пробел или R",
+    "Прокрутка — веди мышь к краю экрана или A/D",
+    "Пауза — Esc или P, полный экран — F",
+  ],
+  points: { near: "близко", mid: "средне", far: "далеко", bonus: "бонус" },
+  difficulty: "Сложность",
+  difficulties: { easy: "Легко", normal: "Нормально", hard: "Сложно" },
+  language: "Язык",
+  paused: "Пауза",
+  resume: "Продолжить",
+  restart: "В начало",
+  timeUp: "Время вышло!",
+  yourScore: "Твой счёт",
+  hits: "Попадания",
+  shots: "Выстрелы",
+  accuracy: "Точность",
+  again: "Ещё раз",
+  mute: "Выключить звук",
+  unmute: "Включить звук",
+  fullscreen: "Полный экран (F)",
+  exitFullscreen: "Выйти из полного экрана (F)",
+  error: "Не удалось запустить игру.",
+  errorWebGL: "Твой браузер не поддерживает WebGL, а без него игра не запустится.",
+} satisfies Labels;
