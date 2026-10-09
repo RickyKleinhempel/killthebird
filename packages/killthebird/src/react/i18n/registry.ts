@@ -83,6 +83,8 @@ function matchTag(tag: string): Locale | undefined {
   if (exact) return exact;
   const [language = "", ...rest] = lower.split("-");
   if (language === "zh") {
+    // An explicit script wins over the region (zh-Hans-HK is Simplified).
+    if (rest.includes("hans")) return "zh-CN";
     const traditional = rest.some((s) => s === "hant" || s === "tw" || s === "hk" || s === "mo");
     return traditional ? "zh-TW" : "zh-CN";
   }

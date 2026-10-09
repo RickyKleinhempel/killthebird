@@ -54,6 +54,7 @@ describe("resolveLocale", () => {
     expect(resolveLocale("auto", ["zh-SG"])).toBe("zh-CN");
     expect(resolveLocale("auto", ["zh-HK"])).toBe("zh-TW");
     expect(resolveLocale("auto", ["zh-Hant-TW"])).toBe("zh-TW");
+    expect(resolveLocale("auto", ["zh-Hans-HK"])).toBe("zh-CN");
     expect(resolveLocale("auto", ["no"])).toBe("nb");
     expect(resolveLocale("auto", ["nn-NO"])).toBe("nb");
     expect(resolveLocale("auto", ["iw"])).toBe("he");
