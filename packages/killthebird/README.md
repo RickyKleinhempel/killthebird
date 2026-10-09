@@ -56,7 +56,7 @@ To keep them in sync after updates, add the command as a pre-script:
 and add `public/killthebird/` to `.gitignore`.
 
 If you prefer a CDN, point `assetsBaseUrl` to the package on jsDelivr instead:
-`assetsBaseUrl="https://cdn.jsdelivr.net/npm/killthebird@0.1.0/assets/"`.
+`assetsBaseUrl="https://cdn.jsdelivr.net/npm/killthebird@0.2.0/assets/"`.
 Keep in mind that this loads files from a third-party server (privacy / GDPR).
 
 ## Use
