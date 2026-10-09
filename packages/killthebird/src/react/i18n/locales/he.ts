@@ -1,4 +1,37 @@
-// TODO(i18n): translate. English placeholder until the translation lands.
-import en from "./en";
+import type { Labels } from "../../labels";
 
-export default en;
+export default {
+  title: "Kill the Bird",
+  score: "ניקוד",
+  time: "זמן",
+  reload: "טען מחדש!",
+  reloadHint: "קליק ימני או מקש רווח",
+  reloading: "טוען מחדש…",
+  loading: "טוען את הנוף…",
+  start: "התחל משחק",
+  howTo: [
+    "מכוונים עם העכבר ויורים בקליק שמאלי",
+    "טוענים מחדש בקליק ימני, ברווח או ב־R",
+    "גוללים בהזזת העכבר לקצה המסך או עם A/D",
+    "השהיה עם Esc או P, מסך מלא עם F",
+  ],
+  points: { near: "קרוב", mid: "בינוני", far: "רחוק", bonus: "בונוס" },
+  difficulty: "רמת קושי",
+  difficulties: { easy: "קל", normal: "רגיל", hard: "קשה" },
+  language: "שפה",
+  paused: "המשחק מושהה",
+  resume: "המשך",
+  restart: "חזרה להתחלה",
+  timeUp: "נגמר הזמן!",
+  yourScore: "הניקוד שלך",
+  hits: "פגיעות",
+  shots: "יריות",
+  accuracy: "דיוק",
+  again: "שחק שוב",
+  mute: "השתק",
+  unmute: "בטל השתקה",
+  fullscreen: "מסך מלא (F)",
+  exitFullscreen: "יציאה ממסך מלא (F)",
+  error: "לא ניתן היה להפעיל את המשחק.",
+  errorWebGL: "הדפדפן שלך לא תומך ב־WebGL, והמשחק צריך אותו.",
+} satisfies Labels;

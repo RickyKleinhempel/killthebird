@@ -1,4 +1,37 @@
-// TODO(i18n): translate. English placeholder until the translation lands.
-import en from "./en";
+import type { Labels } from "../../labels";
 
-export default en;
+export default {
+  title: "Kill the Bird",
+  score: "Skor",
+  time: "Süre",
+  reload: "Yeniden doldur!",
+  reloadHint: "Sağ tık veya boşluk tuşu",
+  reloading: "Dolduruluyor…",
+  loading: "Manzara yükleniyor…",
+  start: "Oyunu başlat",
+  howTo: [
+    "Fareyle nişan al, sol tıkla ateş et",
+    "Sağ tık, boşluk tuşu veya R ile doldur",
+    "Fareyi kenara götürerek ya da A/D ile kaydır",
+    "Esc veya P ile duraklat, F ile tam ekran",
+  ],
+  points: { near: "yakın", mid: "orta", far: "uzak", bonus: "bonus" },
+  difficulty: "Zorluk",
+  difficulties: { easy: "Kolay", normal: "Normal", hard: "Zor" },
+  language: "Dil",
+  paused: "Duraklatıldı",
+  resume: "Devam et",
+  restart: "Başa dön",
+  timeUp: "Süre doldu!",
+  yourScore: "Skorun",
+  hits: "İsabet",
+  shots: "Atış",
+  accuracy: "İsabet oranı",
+  again: "Tekrar oyna",
+  mute: "Sesi kapat",
+  unmute: "Sesi aç",
+  fullscreen: "Tam ekran (F)",
+  exitFullscreen: "Tam ekrandan çık (F)",
+  error: "Oyun başlatılamadı.",
+  errorWebGL: "Tarayıcın, oyunun ihtiyaç duyduğu WebGL'i desteklemiyor.",
+} satisfies Labels;
