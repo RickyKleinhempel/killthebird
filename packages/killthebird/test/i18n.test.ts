@@ -35,6 +35,14 @@ describe("locales", () => {
     expect(shape(labels)).toEqual(shape(en));
     for (const s of strings(labels)) expect(s.trim()).not.toBe("");
   });
+
+  it.each(LOCALES.map((l) => l.code).filter((c) => c !== "en"))("%s is translated, not the English placeholder", async (code) => {
+    const en = strings(await loadLabels("en"));
+    const own = strings(await loadLabels(code));
+    // A few texts may legitimately match English ("Kill the Bird", "Normal", "Bonus").
+    const same = own.filter((s, i) => s === en[i]).length;
+    expect(same).toBeLessThanOrEqual(5);
+  });
 });
 
 describe("resolveLocale", () => {
