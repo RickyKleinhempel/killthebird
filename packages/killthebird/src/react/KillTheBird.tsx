@@ -22,7 +22,7 @@ import type {
   ShotEvent,
 } from "../engine/types";
 import { Hud } from "./Hud";
-import { browserLanguages, localeDir, resolveLocale } from "./i18n/registry";
+import { browserLanguages, isLocale, localeDir, resolveLocale } from "./i18n/registry";
 import { useLabels } from "./i18n/useLabels";
 import type { Labels } from "./labels";
 
@@ -153,7 +153,8 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
   useEffect(() => {
     setLocale(resolveLocale(localeSetting, browserLanguages()));
   }, [localeSetting]);
-  const shown = useLabels(locale);
+  // A locale whose chunk failed to load: go back to the one still shown.
+  const shown = useLabels(locale, setLocale);
 
   // Options that require a new game instance when they change.
   const structuralKey = JSON.stringify([
@@ -254,7 +255,10 @@ export const KillTheBird = forwardRef<KillTheBirdHandle, KillTheBirdProps>(funct
         difficultyRef.current = d;
         gameRef.current?.setDifficulty(d);
       },
-      setLocale,
+      setLocale: (l: Locale) => {
+        if (isLocale(l)) setLocale(l);
+        else console.warn(`[killthebird] unsupported locale "${String(l)}"`);
+      },
       setFullscreen: (on: boolean) => gameRef.current?.setFullscreen(on),
       toggleFullscreen: () => gameRef.current?.toggleFullscreen(),
       getHud: () => gameRef.current?.getHud() ?? null,

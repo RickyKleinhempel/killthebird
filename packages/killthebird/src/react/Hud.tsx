@@ -223,7 +223,7 @@ function DifficultySelect({ value, labels, onSelect }: { value: Difficulty; labe
 function LanguageSelect({ value, labels, onSelect }: { value: Locale; labels: Labels; onSelect(l: Locale): void }) {
   return (
     <label style={{ display: "block", maxWidth: "100%" }}>
-      <div style={styles.caption}>{labels.language}</div>
+      <span style={{ ...styles.caption, display: "block" }}>{labels.language}</span>
       <select value={value} onChange={(e) => onSelect(e.currentTarget.value as Locale)} style={styles.select}>
         {LOCALES.map((l) => (
           <option key={l.code} value={l.code} lang={l.code} dir={l.dir} style={styles.option}>
