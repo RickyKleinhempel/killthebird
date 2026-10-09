@@ -152,6 +152,8 @@ function useFormats(locale: Locale) {
     const twoDigits = new Intl.NumberFormat(locale, { minimumIntegerDigits: 2 });
     const percent = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 });
     return {
+      // "·" looks just like the Arabic-Indic and Persian zero (٠ ۰): "۵ · " would read as "۵۰".
+      separator: /[٠۰]/.test(number.format(0)) ? " – " : " · ",
       number: (n: number) => number.format(n),
       percent: (n: number) => percent.format(n),
       time: (seconds: number) => {
@@ -395,11 +397,14 @@ export function Hud({
             ))}
           </ul>
           <div style={styles.chips}>
-            <span style={styles.chip}>{labels.points.near} · {format.number(points.near)}</span>
-            <span style={styles.chip}>{labels.points.mid} · {format.number(points.mid)}</span>
-            <span style={styles.chip}>{labels.points.far} · {format.number(points.far)}</span>
+            <span style={styles.chip}>{labels.points.near}{format.separator}{format.number(points.near)}</span>
+            <span style={styles.chip}>{labels.points.mid}{format.separator}{format.number(points.mid)}</span>
+            <span style={styles.chip}>{labels.points.far}{format.separator}{format.number(points.far)}</span>
             <span style={styles.chip}>
-              {labels.points.bonus} · <bdi>≤{format.number(points.bonusMax)}</bdi>
+              {labels.points.bonus}
+              {format.separator}
+              {/* "≤50" has no strong character for dir="auto" to go by; math reads left to right in RTL locales too. */}
+              <bdi dir="ltr">≤{format.number(points.bonusMax)}</bdi>
             </span>
           </div>
           {settings(true)}
